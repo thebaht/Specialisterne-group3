@@ -1,4 +1,5 @@
 from factory import Factory, ItemType
+import items
 
 
 
@@ -22,4 +23,5 @@ settlersOfCatan = F.createItem(
     age_range = (6,12),
     genre_id = 1
 )
-print(settlersOfCatan)
+print(items.CardGame)
+print([f'{k}: {v.type}' for k, v in items.Figure.__dataclass_fields__.items()])
