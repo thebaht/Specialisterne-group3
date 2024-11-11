@@ -21,4 +21,30 @@ class Game(Item):
 
 @dataclass
 class BoardGame(Game):
-    
+    pass
+
+@dataclass
+class CardGame(Game):
+    collectible: bool
+
+@dataclass
+class Figure(Item):
+    character_id: int | None
+    dimensions: (float, float, float)
+
+@dataclass
+class TabletopFigure(Figure):
+    units_in_set: int
+    pieces: int
+
+@dataclass
+class CollectibleFigure(Figure):
+    pass
+
+@dataclass
+class Tool(Item):
+    tool_type_id: int
+
+@dataclass
+class Supply(Item):
+    pass
