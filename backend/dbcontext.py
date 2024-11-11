@@ -1,11 +1,12 @@
 from sqlalchemy import create_engine, Column, Integer, String, Float
 from sqlalchemy.orm import sessionmaker, declarative_base
+from dbinfo import connection_string
 
 
-# Step 2: Define a Base class for models
+
 Base = declarative_base()
 
-# Step 3: Define models (tables)
+
 class Game(Base):
     __tablename__ = "games"
     
@@ -19,16 +20,9 @@ class Game(Base):
 
 class DatabaseContext:
     def __init__(self):
-        # Replace these with your MySQL database credentials
-        USERNAME = "root"
-        PASSWORD = ""
-        HOST = "127.0.0.1"  # or your server IP
-        PORT = 3306         # default MySQL port
-        DATABASE = "lagringssystem"
 
-        self.engine = create_engine(f"mysql+pymysql://{USERNAME}:{PASSWORD}@{HOST}:{PORT}/{DATABASE}", echo=True)
+        self.engine = create_engine(connection_string, echo=True)
         self.Session = sessionmaker(bind=self.engine)
-        # Automatically create tables if they don't exist
         Base.metadata.create_all(self.engine)
 
     def get_session(self):
@@ -69,27 +63,9 @@ class DatabaseContext:
 dbcontext = DatabaseContext()
 dbcontext.clear_database()
 
-# EXAMPLE 1....................................................
-
 dbcontext.add_product( Game(name="ludo", description="blah", manufacturer="hasbro", game_type="tabletop", price=100.00) )
 dbcontext.add_product( Game(name="Spillekort", description="Standard 52 kort kortspil", manufacturer="LaserTryk", game_type="card", price=74.95) )
 
 for game in dbcontext.all_games():
     print(f"\n{' _'*50}\nname:\t\t{game.name}\nDescription:\t{game.description}\nManufactor:\t{game.manufacturer}\nType:\t\t{game.game_type}\nPrice:\t\t{game.price}")
 
-
-# .........................
-dbcontext.clear_database()
-print(f"\n{'__'*50}")
-# EXAMPLE 2....................................................
-
-
-session = dbcontext.get_session()
-
-session.add( Game(name="ludo", description="blah", manufacturer="hasbro", game_type="tabletop", price=100.00) )
-session.add( Game(name="Spillekort", description="Standard 52 kort kortspil", manufacturer="LaserTryk", game_type="card", price=74.95) )
-
-for game in session.query(Game).all():
-    print(f"\n{' _'*50}\nname:\t\t{game.name}\nDescription:\t{game.description}\nManufactor:\t{game.manufacturer}\nType:\t\t{game.game_type}\nPrice:\t\t{game.price}")
-
-session.close()

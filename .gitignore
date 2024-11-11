@@ -2,5 +2,5 @@
 
 .vscode
 .venv
-backend/__pycache__/items.cpython-312.pyc
-/backend/__pycache__
+__pycache__
+backend/dbinfo.py
