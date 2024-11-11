@@ -63,8 +63,6 @@ class DatabaseContext:
 dbcontext = DatabaseContext()
 dbcontext.clear_database()
 
-# EXAMPLE 1....................................................
-
 dbcontext.add_product( Game(name="ludo", description="blah", manufacturer="hasbro", game_type="tabletop", price=100.00) )
 dbcontext.add_product( Game(name="Spillekort", description="Standard 52 kort kortspil", manufacturer="LaserTryk", game_type="card", price=74.95) )
 
