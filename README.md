@@ -4,7 +4,7 @@
 https://trello.com/b/SAcrkUhq/spac-uge-5
 
 
-### Krav/prioriteter
+## Krav/prioriteter
 
 - Singleton database connection
 
@@ -12,41 +12,36 @@ https://trello.com/b/SAcrkUhq/spac-uge-5
 
 - Test systemet
 
-### Kodesprog
-
-Python
-
-### Frameworks
-
-### Estimeret tid
-
-### Featurelist
+## Featurelist
 
 produktklasser
-    - spil
-      - brætspil
-      - kortspil
-    - figurer
-    - redskaber
-    - forsygninger
+- spil
+    - brætspil
+    - kortspil
+- figurer
+- redskaber
+- forsygninger
+    
 transferobjects (dto) (json)
+
 api (optional)
+
 db context  
-    - singleton db connection
-    - db interaction functions
+- singleton db connection
+- db interaction functions
+
 backend program
-    - setup
-      - create factory
-      - create db context
-      - start frontend
-    - populate db
-    - Produktfactoryklasse
+- setup
+  - create factory
+  - create db context
+  - start frontend
+- populate db
+- Produktfactoryklasse
+
 frontend program
-    - display products
+- display products
 
-db <-> context <-> backend <-> api <-> frontend
-
-### Work breakdown
+## Work breakdown
 
 | Arbejdsopgave           | Start dato | Slutdato | Tidsforbrug |
 | ----------------------- | ---------- | -------- | ----------- |
@@ -60,6 +55,7 @@ db <-> context <-> backend <-> api <-> frontend
 |                         |            |          |             |
 |                         |            |          |             |
 
+# Kanban
 ## TODO
 
 ## in progress
