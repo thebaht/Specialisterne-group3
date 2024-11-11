@@ -14,32 +14,32 @@ https://trello.com/b/SAcrkUhq/spac-uge-5
 
 ## Featurelist
 
-produktklasser
-- spil
-    - brætspil
-    - kortspil
-- figurer
-- redskaber
-- forsygninger
+- produktklasser
+    - spil
+        - brætspil
+        - kortspil
+    - figurer
+    - redskaber
+    - forsygninger
     
-transferobjects (dto) (json)
+- transferobjects (dto) (json)
 
-api (optional)
+- api (optional)
 
-db context  
-- singleton db connection
-- db interaction functions
+- db context  
+    - singleton db connection
+    - db interaction functions
 
-backend program
-- setup
-  - create factory
-  - create db context
-  - start frontend
-- populate db
-- Produktfactoryklasse
+- backend program
+    - setup
+      - create factory
+      - create db context
+      - start frontend
+    - populate db
+    - Produktfactoryklasse
 
-frontend program
-- display products
+- frontend program
+    - display products
 
 ## Work breakdown
 
