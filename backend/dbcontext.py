@@ -1,11 +1,12 @@
 from sqlalchemy import create_engine, Column, Integer, String, Float
 from sqlalchemy.orm import sessionmaker, declarative_base
+from dbinfo import connection_string
 
 
-# Step 2: Define a Base class for models
+
 Base = declarative_base()
 
-# Step 3: Define models (tables)
+
 class Game(Base):
     __tablename__ = "games"
     
@@ -19,16 +20,9 @@ class Game(Base):
 
 class DatabaseContext:
     def __init__(self):
-        # Replace these with your MySQL database credentials
-        USERNAME = "root"
-        PASSWORD = ""
-        HOST = "127.0.0.1"  # or your server IP
-        PORT = 3306         # default MySQL port
-        DATABASE = "lagringssystem"
 
-        self.engine = create_engine(f"mysql+pymysql://{USERNAME}:{PASSWORD}@{HOST}:{PORT}/{DATABASE}", echo=True)
+        self.engine = create_engine(connection_string, echo=True)
         self.Session = sessionmaker(bind=self.engine)
-        # Automatically create tables if they don't exist
         Base.metadata.create_all(self.engine)
 
     def get_session(self):
