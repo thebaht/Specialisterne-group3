@@ -61,7 +61,9 @@ https://trello.com/b/SAcrkUhq/spac-uge-5
 ## in progress
 
 DB context (frederik)
+
 Produktklasser (christian)
+
 factory (mikkel)
 
 ## done
