@@ -8,7 +8,7 @@ class Item:
     description: str
     quantity: int
     price: float
-    discount: float = 0.0
+    discount: float
 
     def get_discounted_price(self):
         return self.price * (1.0 - self.discount)
@@ -16,7 +16,7 @@ class Item:
 @dataclass
 class Game(Item):
     player_number: list
-    age_range: (int, int)
+    age_range: tuple[int, int]
     genre_id: int
 
 @dataclass
@@ -30,7 +30,7 @@ class CardGame(Game):
 @dataclass
 class Figure(Item):
     character_id: int | None
-    dimensions: (float, float, float)
+    dimensions: tuple[float, float, float]
 
 @dataclass
 class TabletopFigure(Figure):
