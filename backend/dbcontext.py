@@ -71,19 +71,3 @@ dbcontext.add_product( Game(name="Spillekort", description="Standard 52 kort kor
 for game in dbcontext.all_games():
     print(f"\n{' _'*50}\nname:\t\t{game.name}\nDescription:\t{game.description}\nManufactor:\t{game.manufacturer}\nType:\t\t{game.game_type}\nPrice:\t\t{game.price}")
 
-
-# .........................
-dbcontext.clear_database()
-print(f"\n{'__'*50}")
-# EXAMPLE 2....................................................
-
-
-session = dbcontext.get_session()
-
-session.add( Game(name="ludo", description="blah", manufacturer="hasbro", game_type="tabletop", price=100.00) )
-session.add( Game(name="Spillekort", description="Standard 52 kort kortspil", manufacturer="LaserTryk", game_type="card", price=74.95) )
-
-for game in session.query(Game).all():
-    print(f"\n{' _'*50}\nname:\t\t{game.name}\nDescription:\t{game.description}\nManufactor:\t{game.manufacturer}\nType:\t\t{game.game_type}\nPrice:\t\t{game.price}")
-
-session.close()
