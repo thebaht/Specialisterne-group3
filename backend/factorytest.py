@@ -21,7 +21,8 @@ settlersOfCatan = F.createItem(
     120,
     player_number = [2,5],
     age_range = (6,12),
-    genre_id = 1
+    genre_id = 1,
 )
-print(items.CardGame)
-print([f'{k}: {v.type}' for k, v in items.Figure.__dataclass_fields__.items()])
+#print(settlersOfCatan)
+#print([f'{k}: {v.type}' for k, v in items.Figure.__dataclass_fields__.items()])
+

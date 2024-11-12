@@ -21,7 +21,7 @@ class Game(Item):
 
 @dataclass(kw_only=True)
 class BoardGame(Game):
-    pass
+    edition: int
 
 @dataclass(kw_only=True)
 class CardGame(Game):
@@ -47,4 +47,4 @@ class Tool(Item):
 
 @dataclass(kw_only=True)
 class Supply(Item):
-    pass
+    hazardous: bool
