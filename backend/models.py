@@ -1,5 +1,5 @@
 from typing import List, Optional
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
@@ -17,7 +17,7 @@ class Base(DeclarativeBase):
 class Manufacturer(Base):
     __tablename__ = "manufacturer"
     id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str]
+    name: Mapped[str] = mapped_column(String(30))
     items: Mapped[List["Item"]] = relationship(
         back_populates="manufacturer", cascade="all, delete-orphan"
     )
@@ -26,11 +26,11 @@ class Manufacturer(Base):
 class Item(Base):
     __tablename__ = "item"
     id: Mapped[int] = mapped_column(primary_key=True)
-    type: Mapped[str]
+    type: Mapped[str] = mapped_column(String(30))
     manufacturer_id: Mapped[int] = mapped_column(ForeignKey("manufacturer.id"))
     manufacturer: Mapped["Manufacturer"] = relationship(back_populates="items")
-    name: Mapped[str]
-    description: Mapped[str]
+    name: Mapped[str] = mapped_column(String(30))
+    description: Mapped[str] = mapped_column(String(30))
     quantity: Mapped[int]
     price: Mapped[float]
     discount: Mapped[Optional[float]]
@@ -44,7 +44,7 @@ class Item(Base):
 class Genre(Base):
     __tablename__ = "genre"
     id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str]
+    name: Mapped[str] = mapped_column(String(30))
     games: Mapped[List["Game"]] = relationship(
         back_populates="genre", cascade="all, delete-orphan"
     )
@@ -86,8 +86,8 @@ class CardGame(Game):
 class Character(Base):
     __tablename__ = "character"
     id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str]
-    franchise: Mapped[str]
+    name: Mapped[str] = mapped_column(String(30))
+    franchise: Mapped[str] = mapped_column(String(30))
     figures: Mapped[List["Figure"]] = relationship(
         back_populates="character", cascade="all, delete-orphan"
     )
@@ -98,8 +98,8 @@ class Figure(Item):
     id: Mapped[int] = mapped_column(ForeignKey("item.id"), primary_key=True)
     character_id: Mapped[int] = mapped_column(ForeignKey("character.id"), nullable=True)
     character: Mapped["Character"] = relationship(back_populates="figures")
+    length: Mapped[float]
     width: Mapped[float]
-    breadth: Mapped[float]
     height: Mapped[float]
 
     __mapper_args__ = {
@@ -128,8 +128,8 @@ class CollectibleFigure(Figure):
 class ToolType(Base):
     __tablename__ = "tool_type"
     id: Mapped[int] = mapped_column(primary_key=True)
-    tool_type: Mapped[str]
-    usage_desciption: Mapped[str]
+    tool_type: Mapped[str] = mapped_column(String(30))
+    usage_desciption: Mapped[str] = mapped_column(String(30))
     tools: Mapped[List["Tool"]] = relationship(
         back_populates="tool_type", cascade="all, delete-orphan"
     )
@@ -149,8 +149,8 @@ class Tool(Item):
 class SupplyType(Base):
     __tablename__ = "supply_type"
     id: Mapped[int] = mapped_column(primary_key=True)
-    supply_type: Mapped[str]
-    usage_desciption: Mapped[str]
+    supply_type: Mapped[str] = mapped_column(String(30))
+    usage_desciption: Mapped[str] = mapped_column(String(30))
     supplies: Mapped[List["Supply"]] = relationship(
         back_populates="supply_type", cascade="all, delete-orphan"
     )
@@ -177,8 +177,8 @@ if __name__ == '__main__':
         quantity=500,
         price=200.0,
         discount=0.0,
-        width=1.0,
-        breadth=2.0,
+        length=1.0,
+        width=2.0,
         height=3.0,
     )
 

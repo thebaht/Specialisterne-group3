@@ -1,7 +1,7 @@
 
 from typing import Self
 from enum import StrEnum, auto
-import items
+import models
 
 
 class ItemType(StrEnum):
@@ -15,13 +15,13 @@ class ItemType(StrEnum):
     def get_python_type(self):
         match self:
             case self.BOARDGAME:
-                return items.BoardGame
+                return models.BoardGame
             case self.CARDGAME:
-                return items.CardGame
+                return models.CardGame
             case self.TABLETOPFIGURE:
-                return items.TabletopFigure
+                return models.TabletopFigure
             case self.COLLECTIBLEFIGURE:
-                return items.CollectibleFigure
+                return models.CollectibleFigure
             
 
 class InvalidItemType(Exception):
@@ -61,9 +61,14 @@ class Factory:
             raise InvalidItemType(item_type)
 
         python_type = item_type_enum.get_python_type()
-        if issubclass(python_type, items.Figure):
-            if "character_id" not in kwargs.keys():
-                kwargs.update({"character_id": None})
+        if issubclass(python_type, models.Figure):
+            if "dimensions" in kwargs:
+                length, width, height = kwargs["dimensions"]
+                kwargs.update({
+                    "length": length,
+                    "width": width,
+                    "height": height,
+                })
 
         # Set default args depending on type
         if isinstance(manufacturer, int):
@@ -84,17 +89,17 @@ class Factory:
         try:
             match item_type_enum:
                 case ItemType.CARDGAME:
-                    return items.CardGame(**kwargs)
+                    return models.CardGame(**kwargs)
                 case ItemType.BOARDGAME:
                     kwargs["edition"] = kwargs.get("edition",1)
-                    return items.BoardGame(**kwargs)
+                    return models.BoardGame(**kwargs)
                 case ItemType.COLLECTIBLEFIGURE:
-                    return items.CollectibleFigure(**kwargs)
+                    return models.CollectibleFigure(**kwargs)
                 case ItemType.TABLETOPFIGURE:
-                    return items.TabletopFigure(**kwargs)
+                    return models.TabletopFigure(**kwargs)
                 case ItemType.TOOL:
-                    return items.Tool(**kwargs)
+                    return models.Tool(**kwargs)
                 case ItemType.SUPPLY:
-                    return items.Supply(**kwargs)
+                    return models.Supply(**kwargs)
         except TypeError as e:
             raise ItemValueException(e)
