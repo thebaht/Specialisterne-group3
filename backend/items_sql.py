@@ -13,12 +13,13 @@ class Base(DeclarativeBase):
 # https://docs.sqlalchemy.org/en/20/orm/inheritance.html#joined-table-inheritance
 
 
+
 class Manufacturer(Base):
     __tablename__ = "manufacturer"
     id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[int]
+    name: Mapped[str]
     items: Mapped[List["Item"]] = relationship(
-        back_populates="item", cascade="all, delete-orphan"
+        back_populates="manufacturer", cascade="all, delete-orphan"
     )
 
 
@@ -27,12 +28,12 @@ class Item(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     type: Mapped[str]
     manufacturer_id: Mapped[int] = mapped_column(ForeignKey("manufacturer.id"))
-    manufacturer: Mapped["Manufacturer"] = relationship(back_populates="manufacturer")
+    manufacturer: Mapped["Manufacturer"] = relationship(back_populates="items")
     name: Mapped[str]
     description: Mapped[str]
     quantity: Mapped[int]
     price: Mapped[float]
-    discount: Mapped[float]
+    discount: Mapped[Optional[float]]
 
     __mapper_args__ = {
         "polymorphic_identity": "item",
@@ -43,9 +44,9 @@ class Item(Base):
 class Genre(Base):
     __tablename__ = "genre"
     id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[int]
-    items: Mapped[List["Game"]] = relationship(
-        back_populates="game", cascade="all, delete-orphan"
+    name: Mapped[str]
+    games: Mapped[List["Game"]] = relationship(
+        back_populates="genre", cascade="all, delete-orphan"
     )
 
 
@@ -53,7 +54,7 @@ class Game(Item):
     __tablename__ = "game"
     id: Mapped[int] = mapped_column(ForeignKey("item.id"), primary_key=True)
     genre_id: Mapped[int] = mapped_column(ForeignKey("genre.id"))
-    genre: Mapped["Genre"] = relationship(back_populates="genre")
+    genre: Mapped["Genre"] = relationship(back_populates="games")
     age_min: Mapped[int]
     player_number_min: Mapped[int]
     player_number_max: Mapped[int]
@@ -75,7 +76,7 @@ class BoardGame(Game):
 class CardGame(Game):
     __tablename__ = "card_game"
     id: Mapped[int] = mapped_column(ForeignKey("game.id"), primary_key=True)
-    collectibed: Mapped[bool]
+    collectible: Mapped[bool]
 
     __mapper_args__ = {
         "polymorphic_identity": "card_game",
@@ -85,9 +86,10 @@ class CardGame(Game):
 class Character(Base):
     __tablename__ = "character"
     id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[int]
-    items: Mapped[List["Figure"]] = relationship(
-        back_populates="figure", cascade="all, delete-orphan"
+    name: Mapped[str]
+    franchise: Mapped[str]
+    figures: Mapped[List["Figure"]] = relationship(
+        back_populates="character", cascade="all, delete-orphan"
     )
 
 
@@ -95,7 +97,7 @@ class Figure(Item):
     __tablename__ = "figure"
     id: Mapped[int] = mapped_column(ForeignKey("item.id"), primary_key=True)
     character_id: Mapped[int] = mapped_column(ForeignKey("character.id"), nullable=True)
-    character: Mapped["Character"] = relationship(back_populates="character")
+    character: Mapped["Character"] = relationship(back_populates="figures")
     width: Mapped[float]
     breadth: Mapped[float]
     height: Mapped[float]
@@ -129,7 +131,7 @@ class ToolType(Base):
     tool_type: Mapped[str]
     usage_desciption: Mapped[str]
     tools: Mapped[List["Tool"]] = relationship(
-        back_populates="tool", cascade="all, delete-orphan"
+        back_populates="tool_type", cascade="all, delete-orphan"
     )
 
 
@@ -137,7 +139,7 @@ class Tool(Item):
     __tablename__ = "tool"
     id: Mapped[int] = mapped_column(ForeignKey("item.id"), primary_key=True)
     tool_type_id: Mapped[int] = mapped_column(ForeignKey("tool_type.id"))
-    tool_type: Mapped["ToolType"] = relationship(back_populates="tool_type")
+    tool_type: Mapped["ToolType"] = relationship(back_populates="tools")
 
     __mapper_args__ = {
         "polymorphic_identity": "tool",
@@ -149,8 +151,8 @@ class SupplyType(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     supply_type: Mapped[str]
     usage_desciption: Mapped[str]
-    supplys: Mapped[List["Supply"]] = relationship(
-        back_populates="supply", cascade="all, delete-orphan"
+    supplies: Mapped[List["Supply"]] = relationship(
+        back_populates="supply_type", cascade="all, delete-orphan"
     )
 
 
@@ -158,8 +160,26 @@ class Supply(Item):
     __tablename__ = "supply"
     id: Mapped[int] = mapped_column(ForeignKey("item.id"), primary_key=True)
     supply_type_id: Mapped[int] = mapped_column(ForeignKey("supply_type.id"))
-    supply_type: Mapped["SupplyType"] = relationship(back_populates="supply_type")
+    supply_type: Mapped["SupplyType"] = relationship(back_populates="supplies")
 
     __mapper_args__ = {
         "polymorphic_identity": "supply",
     }
+
+
+if __name__ == '__main__':
+    # simpel test
+    man = Manufacturer(name="games workshop")
+
+    fig = TabletopFigure(
+        name="space marine",
+        description="little space men",
+        quantity=500,
+        price=200.0,
+        discount=0.0,
+        width=1.0,
+        breadth=2.0,
+        height=3.0,
+    )
+
+    man.items.append(fig)
