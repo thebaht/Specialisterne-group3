@@ -2,10 +2,7 @@ from sqlalchemy import create_engine, Column, Integer, String, Float
 from sqlalchemy.orm import sessionmaker, declarative_base
 from dbinfo import connection_string
 
-
-
 Base = declarative_base()
-
 
 class Game(Base):
     __tablename__ = "games"
