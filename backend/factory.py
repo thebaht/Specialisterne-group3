@@ -1,24 +1,24 @@
 import models
+import sqlalchemy as sql
 from sqlalchemy.orm import Session
 
 
-class InvalidItemType(Exception):
+class ItemNameException(Exception):
     pass
 
+class ItemKeyException(Exception):
+    pass
 
 class ItemValueException(Exception):
+    pass
+
+class ItemReferenceException(Exception):
     pass
 
 
 class Factory:
     def __init__(self, start_id=0):
         self.id = start_id
-
-    ## TODO ##
-    #update to create id based on database entry
-    def new_id(self):
-        self.id += 1
-        return self.id
 
     # Create from dict
     def createItemFromDict(self, session, dictArg):
@@ -42,7 +42,16 @@ class Factory:
 
             item_class = next((ic for ic in models.ITEMS if matches_class(ic, item_type)))
         except StopIteration:
-            raise InvalidItemType(item_type)
+            raise ItemNameException(item_type)
+
+        kwargs.update({
+            "manufacturer": manufacturer,
+            "name": name,
+            "description": description,
+            "quantity": quantity,
+            "price": price,
+            "discount": 0.0,
+        })
 
         if issubclass(item_class, models.Figure):
             if "dimensions" in kwargs:
@@ -63,25 +72,35 @@ class Factory:
                     "num_players_max": max,
                 })
 
-        # Set default args depending on type
-        if isinstance(manufacturer, int):
-            manufacturer_id = manufacturer
-        else:
-            manufacturer_id = 0
+        for key, value in kwargs.items():
+            if not hasattr(item_class, key):
+                raise ItemKeyException(key)
 
-        kwargs.update({
-            "id": self.new_id(),
-            "manufacturer_id": manufacturer_id,
-            "name": name,
-            "description": description,
-            "quantity": quantity,
-            "price": price,
-            "discount": 0.0,
-        })
+            field = getattr(item_class, key)
+            if not hasattr(field, 'mapper'):
+                continue
 
+            ref_class = field.mapper.entity
+            print(ref_class)
+            if isinstance(value, ref_class):
+                continue
+
+            if isinstance(value, int):
+                select = getattr(ref_class, 'id')
+            elif isinstance(value, str):
+                select = getattr(ref_class, 'name')
+            else:
+                raise ItemValueException()
+
+            stmt = sql.select(ref_class).where(select == value)
+            if ref := session.scalars(stmt).one_or_none():
+                kwargs[key] = ref
+            else:
+                raise ItemReferenceException()
+        
         try:
             item = item_class(**kwargs)
         except TypeError as e:
-            raise ItemValueException(e)
+            raise ItemKeyException(e)
 
         return item

@@ -1,4 +1,5 @@
 from dbcontext import *
+from factory import Factory
 # from itemValue import *
 from sqlalchemy import update, and_
 from flask import Flask, jsonify, request
@@ -195,6 +196,30 @@ def remove_item(id):
 #         print(fig.manufacturer_id)
 #         print(f"{fig.price}\n")
 
+    # session.commit()
 
-#     session.commit()
-#     session.close()
+    # F = Factory()
+    # spaceMarine = F.createItem(
+    #     session,
+    #     "tabletopfigure", 
+    #     "space marine v3", 
+    #     "another workshop",
+    #     "little space men v3",
+    #     1, ##remove later
+    #     500,
+    #     num_pieces=400,
+    #     num_units=16,
+    #     dimensions=(100,100,100),
+    # )
+
+    # print(spaceMarine)
+
+    # session.add(spaceMarine)
+    # session.flush()
+
+    # for fig in session.query(TabletopFigure).all():
+    #     print(f"\n{"_ "*50}\n{fig.name}")
+    #     print(fig.manufacturer_id)
+    #     print(f"{fig.price}\n")  
+
+    # session.close()

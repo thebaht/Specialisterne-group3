@@ -232,4 +232,32 @@ if __name__ == '__main__':
 
     man.items.append(fig)
 
-    print(ITEMS)
+    # print(ITEMS)
+    field = Figure.character
+    # print(dir(field))
+    # print(field.nullable)
+    # print(man)
+    # print([(t, type(getattr(man, t))) for t in dir(man)])
+
+    # print(hasattr(man, 'mapper'))
+    # map = man.mapper
+    # print(dir(map))
+    # print(map)
+    # print(type(map))
+    # print(map.entity)
+    
+    # prop = field.property
+    # print(dir(prop))
+    # print(prop)
+    # print(type(prop))
+    # print(prop.setup)
+
+    # print(dir(map))
+    # print(type(map))
+    # print(map.__mro_entries__(None)[0])
+    # import typing
+    # arg = typing.get_args(map)[0]
+    # print(arg)
+    # print(arg.__forward_arg__)
+    # print(dir(arg))
+
