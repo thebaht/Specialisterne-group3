@@ -167,6 +167,28 @@ class Supply(Item):
         "polymorphic_identity": "supply",
     }
 
+def __get_tables__():
+    import sys, inspect
+    tables = [obj for _, obj in inspect.getmembers(sys.modules[__name__]) if inspect.isclass(obj)]
+    for _, obj in inspect.getmembers(sys.modules[__name__]):
+        if not inspect.isclass(obj):
+            continue
+
+        found_base = False
+        base = obj
+        while base.__bases__:
+            base = base.__bases__[0]
+            if base == Base:
+                found_base = True
+                break
+
+        if not found_base and obj in tables:
+            tables.remove(obj)
+        
+    return {(table.__name__.lower(), table) for table in tables}
+
+TABLES = __get_tables__()
+                   
 
 def __get_items__():
     import sys, inspect
