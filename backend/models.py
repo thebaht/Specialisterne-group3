@@ -187,6 +187,8 @@ def __get_items__():
 
         if not found_item and obj in items:
             items.remove(obj)
+        
+    return items
 
 ITEMS = __get_items__()
                    
