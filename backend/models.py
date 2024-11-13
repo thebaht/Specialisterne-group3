@@ -167,25 +167,28 @@ class Supply(Item):
     }
 
 
-import sys, inspect
-ITEMS = [obj for _, obj in inspect.getmembers(sys.modules[__name__]) if inspect.isclass(obj)]
-for _, obj in inspect.getmembers(sys.modules[__name__]):
-    if not inspect.isclass(obj):
-        continue
+def __get_items__():
+    import sys, inspect
+    items = [obj for _, obj in inspect.getmembers(sys.modules[__name__]) if inspect.isclass(obj)]
+    for _, obj in inspect.getmembers(sys.modules[__name__]):
+        if not inspect.isclass(obj):
+            continue
 
-    found_item = False
-    base = obj
-    while base.__bases__:
-        base = base.__bases__[0]
-        if base in ITEMS:
-            ITEMS.remove(base)
+        found_item = False
+        base = obj
+        while base.__bases__:
+            base = base.__bases__[0]
+            if base in items:
+                items.remove(base)
 
-        if base == Item:
-            found_item = True
-            break
+            if base == Item:
+                found_item = True
+                break
 
-    if not found_item and obj in ITEMS:
-        ITEMS.remove(obj)
+        if not found_item and obj in items:
+            items.remove(obj)
+
+ITEMS = __get_items__()
                    
 if __name__ == '__main__':
     # simpel test
