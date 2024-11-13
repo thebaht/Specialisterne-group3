@@ -44,12 +44,21 @@ class Factory:
         if issubclass(item_class, models.Figure):
             if "dimensions" in kwargs:
                 length, width, height = kwargs["dimensions"]
+                del kwargs["dimensions"]
                 kwargs.update({
                     "length": length,
                     "width": width,
                     "height": height,
                 })
-                del kwargs["dimensions"]
+
+        if issubclass(item_class, models.Game):
+            if "num_players" in kwargs:
+                min, max = kwargs["num_players"]
+                del kwargs["num_players"]
+                kwargs.update({
+                    "num_players_min": min,
+                    "num_players_max": max,
+                })
 
         # Set default args depending on type
         if isinstance(manufacturer, int):

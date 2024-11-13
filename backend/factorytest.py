@@ -10,7 +10,7 @@ spaceMarine = F.createItem(
     "little space men",
     1, ##remove later
     500,
-    pieces=400, units_in_set=16,dimensions=(12,12,12))
+    num_pieces=400, num_units=16, dimensions=(12,12,12))
 settlersOfCatan = F.createItem(
     "boardgame",
     "setlers of cataan",
@@ -18,8 +18,8 @@ settlersOfCatan = F.createItem(
     "classic eurogame",
     1,
     120,
-    player_number = [2,5],
-    age_range = (6,12),
+    num_players = (2,5),
+    min_age = 6,
     genre_id = 1,
 )
 #print(settlersOfCatan)
