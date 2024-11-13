@@ -1,28 +1,5 @@
-
-from typing import Self
-from enum import StrEnum, auto
 import models
 
-
-class ItemType(StrEnum):
-    BOARDGAME = auto()
-    CARDGAME = auto()
-    TABLETOPFIGURE = auto()
-    COLLECTIBLEFIGURE = auto()
-    TOOL = auto()
-    SUPPLY = auto()
-
-    def get_python_type(self):
-        match self:
-            case self.BOARDGAME:
-                return models.BoardGame
-            case self.CARDGAME:
-                return models.CardGame
-            case self.TABLETOPFIGURE:
-                return models.TabletopFigure
-            case self.COLLECTIBLEFIGURE:
-                return models.CollectibleFigure
-            
 
 class InvalidItemType(Exception):
     pass
@@ -56,12 +33,15 @@ class Factory:
                    **kwargs,
                    ):
         try:
-            item_type_enum = ItemType(item_type.lower())
-        except ValueError:
+            def matches_class(item_class, name):
+                lower = name.lower()
+                return item_class.__name__.lower() == lower or item_class.__tablename__.lower() == lower
+
+            item_class = next((ic for ic in models.ITEMS if matches_class(ic, item_type)))
+        except StopIteration:
             raise InvalidItemType(item_type)
 
-        python_type = item_type_enum.get_python_type()
-        if issubclass(python_type, models.Figure):
+        if issubclass(item_class, models.Figure):
             if "dimensions" in kwargs:
                 length, width, height = kwargs["dimensions"]
                 kwargs.update({
@@ -69,6 +49,7 @@ class Factory:
                     "width": width,
                     "height": height,
                 })
+                del kwargs["dimensions"]
 
         # Set default args depending on type
         if isinstance(manufacturer, int):
@@ -87,19 +68,8 @@ class Factory:
         })
 
         try:
-            match item_type_enum:
-                case ItemType.CARDGAME:
-                    return models.CardGame(**kwargs)
-                case ItemType.BOARDGAME:
-                    kwargs["edition"] = kwargs.get("edition",1)
-                    return models.BoardGame(**kwargs)
-                case ItemType.COLLECTIBLEFIGURE:
-                    return models.CollectibleFigure(**kwargs)
-                case ItemType.TABLETOPFIGURE:
-                    return models.TabletopFigure(**kwargs)
-                case ItemType.TOOL:
-                    return models.Tool(**kwargs)
-                case ItemType.SUPPLY:
-                    return models.Supply(**kwargs)
+            item = item_class(**kwargs)
         except TypeError as e:
             raise ItemValueException(e)
+
+        return item

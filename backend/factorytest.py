@@ -1,5 +1,4 @@
-from factory import Factory, ItemType
-import items
+from factory import Factory
 
 
 
