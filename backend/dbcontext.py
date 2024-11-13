@@ -24,24 +24,4 @@ class DatabaseContext:
         """Dispose the engine when done."""
         self.engine.dispose()
 
-    def add_product(self, game):
-        session = self.get_session()
-        try:
-            session.add(game)
-            session.commit()
-        except Exception as e:
-            session.rollback()
-            print(f"Error: {e}")
-        finally:
-            session.close()
-            
-    def all_games(self):
-        session = self.get_session()
-        data = session.query(Game).all()
-        session.close()
-        return data
-            
-
-
-
-# Stuff der ville være i backend________________________________________________________
+           
