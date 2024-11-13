@@ -21,8 +21,8 @@ class Factory:
         return self.id
 
     # Create from dict
-    def createItemFromDict(self, dictArg):
-        return self.createItem(**dictArg)
+    def createItemFromDict(self, session, dictArg):
+        return self.createItem(session, **dictArg)
 
     def createItem(
         self,
