@@ -6,7 +6,6 @@ from models import *
 
 class DatabaseContext:
     def __init__(self):
-
         self.engine = create_engine(connection_string, echo=True)
         self.Session = sessionmaker(bind=self.engine)
         Base.metadata.create_all(self.engine)
