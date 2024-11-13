@@ -1,4 +1,5 @@
 import models
+from sqlalchemy.orm import Session
 
 
 class InvalidItemType(Exception):
@@ -23,15 +24,17 @@ class Factory:
     def createItemFromDict(self, dictArg):
         return self.createItem(**dictArg)
 
-    def createItem(self,
-                   item_type: str,
-                   name: str,
-                   manufacturer: str | int,
-                   description: str,
-                   price: float,
-                   quantity: int=1,
-                   **kwargs,
-                   ):
+    def createItem(
+        self,
+        session: Session,
+        item_type: str,
+        name: str,
+        manufacturer: str | int,
+        description: str,
+        price: float,
+        quantity: int=1,
+        **kwargs,
+    ):
         try:
             def matches_class(item_class, name):
                 lower = name.lower()
