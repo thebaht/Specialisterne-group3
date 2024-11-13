@@ -75,6 +75,8 @@ if __name__ == '__main__':
         length=2.0,
         width=1.0,
         height=3.0,
+        num_units=16,
+        num_pieces=600,
     )
 
     man.items.append(fig)
@@ -91,9 +93,11 @@ if __name__ == '__main__':
         quantity=500,
         price=200.0,
         discount=0.0,
-        width=1.0,
-        breadth=2.0,
+        length=1.0,
+        width=2.0,
         height=3.0,
+        num_units=16,
+        num_pieces=600,
     )
     session.add(fig2)
 

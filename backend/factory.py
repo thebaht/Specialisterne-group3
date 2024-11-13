@@ -1,28 +1,6 @@
-
-from typing import Self
-from enum import StrEnum, auto
 import models
+from sqlalchemy.orm import Session
 
-
-class ItemType(StrEnum):
-    BOARDGAME = auto()
-    CARDGAME = auto()
-    TABLETOPFIGURE = auto()
-    COLLECTIBLEFIGURE = auto()
-    TOOL = auto()
-    SUPPLY = auto()
-
-    def get_python_type(self):
-        match self:
-            case self.BOARDGAME:
-                return models.BoardGame
-            case self.CARDGAME:
-                return models.CardGame
-            case self.TABLETOPFIGURE:
-                return models.TabletopFigure
-            case self.COLLECTIBLEFIGURE:
-                return models.CollectibleFigure
-            
 
 class InvalidItemType(Exception):
     pass
@@ -46,28 +24,43 @@ class Factory:
     def createItemFromDict(self, dictArg):
         return self.createItem(**dictArg)
 
-    def createItem(self,
-                   item_type: str,
-                   name: str,
-                   manufacturer: str | int,
-                   description: str,
-                   price: float,
-                   quantity: int=1,
-                   **kwargs,
-                   ):
+    def createItem(
+        self,
+        session: Session,
+        item_type: str,
+        name: str,
+        manufacturer: str | int,
+        description: str,
+        price: float,
+        quantity: int=1,
+        **kwargs,
+    ):
         try:
-            item_type_enum = ItemType(item_type.lower())
-        except ValueError:
+            def matches_class(item_class, name):
+                lower = name.lower()
+                return item_class.__name__.lower() == lower or item_class.__tablename__.lower() == lower
+
+            item_class = next((ic for ic in models.ITEMS if matches_class(ic, item_type)))
+        except StopIteration:
             raise InvalidItemType(item_type)
 
-        python_type = item_type_enum.get_python_type()
-        if issubclass(python_type, models.Figure):
+        if issubclass(item_class, models.Figure):
             if "dimensions" in kwargs:
                 length, width, height = kwargs["dimensions"]
+                del kwargs["dimensions"]
                 kwargs.update({
                     "length": length,
                     "width": width,
                     "height": height,
+                })
+
+        if issubclass(item_class, models.Game):
+            if "num_players" in kwargs:
+                min, max = kwargs["num_players"]
+                del kwargs["num_players"]
+                kwargs.update({
+                    "num_players_min": min,
+                    "num_players_max": max,
                 })
 
         # Set default args depending on type
@@ -87,19 +80,8 @@ class Factory:
         })
 
         try:
-            match item_type_enum:
-                case ItemType.CARDGAME:
-                    return models.CardGame(**kwargs)
-                case ItemType.BOARDGAME:
-                    kwargs["edition"] = kwargs.get("edition",1)
-                    return models.BoardGame(**kwargs)
-                case ItemType.COLLECTIBLEFIGURE:
-                    return models.CollectibleFigure(**kwargs)
-                case ItemType.TABLETOPFIGURE:
-                    return models.TabletopFigure(**kwargs)
-                case ItemType.TOOL:
-                    return models.Tool(**kwargs)
-                case ItemType.SUPPLY:
-                    return models.Supply(**kwargs)
+            item = item_class(**kwargs)
         except TypeError as e:
             raise ItemValueException(e)
+
+        return item

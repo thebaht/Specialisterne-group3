@@ -52,9 +52,9 @@ class Game(Item):
     id: Mapped[int] = mapped_column(ForeignKey("item.id"), primary_key=True)
     genre_id: Mapped[int] = mapped_column(ForeignKey("genre.id"))
     genre: Mapped["Genre"] = relationship(back_populates="games")
-    age_min: Mapped[int]
-    player_number_min: Mapped[int]
-    player_number_max: Mapped[int]
+    min_age: Mapped[int]
+    num_players_min: Mapped[int]
+    num_players_max: Mapped[int]
 
     __mapper_args__ = {
         "polymorphic_identity": "game",
@@ -64,6 +64,7 @@ class Game(Item):
 class BoardGame(Game):
     __tablename__ = "board_game"
     id: Mapped[int] = mapped_column(ForeignKey("game.id"), primary_key=True)
+    edition: Mapped[int]
 
     __mapper_args__ = {
         "polymorphic_identity": "board_game",
@@ -107,6 +108,8 @@ class Figure(Item):
 class TabletopFigure(Figure):
     __tablename__ = "tabletop_figure"
     id: Mapped[int] = mapped_column(ForeignKey("figure.id"), primary_key=True)
+    num_units: Mapped[int]
+    num_pieces: Mapped[int]
 
     __mapper_args__ = {
         "polymorphic_identity": "tabletop_figure",
@@ -125,7 +128,7 @@ class CollectibleFigure(Figure):
 class ToolType(Base):
     __tablename__ = "tool_type"
     id: Mapped[int] = mapped_column(primary_key=True)
-    tool_type: Mapped[str] = mapped_column(String(30))
+    name: Mapped[str] = mapped_column(String(30))
     usage_desciption: Mapped[str] = mapped_column(String(30))
     tools: Mapped[List["Tool"]] = relationship(
         back_populates="tool_type", cascade="all, delete-orphan"
@@ -146,7 +149,7 @@ class Tool(Item):
 class SupplyType(Base):
     __tablename__ = "supply_type"
     id: Mapped[int] = mapped_column(primary_key=True)
-    supply_type: Mapped[str] = mapped_column(String(30))
+    name: Mapped[str] = mapped_column(String(30))
     usage_desciption: Mapped[str] = mapped_column(String(30))
     supplies: Mapped[List["Supply"]] = relationship(
         back_populates="supply_type", cascade="all, delete-orphan"
@@ -158,6 +161,7 @@ class Supply(Item):
     id: Mapped[int] = mapped_column(ForeignKey("item.id"), primary_key=True)
     supply_type_id: Mapped[int] = mapped_column(ForeignKey("supply_type.id"))
     supply_type: Mapped["SupplyType"] = relationship(back_populates="supplies")
+    hazardous: Mapped[bool]
 
     __mapper_args__ = {
         "polymorphic_identity": "supply",
