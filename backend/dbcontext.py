@@ -22,5 +22,3 @@ class DatabaseContext:
     def close(self):
         """Dispose the engine when done."""
         self.engine.dispose()
-
-           
