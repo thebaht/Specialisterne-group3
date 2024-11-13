@@ -35,17 +35,20 @@ models = {
 def get_items(table_name):
     session = dbcontext.get_session()
     table = models.get(table_name.lower())
-    filter = request.get_json()
-    filter = [getattr(table, key) == value for key, value in filter.items()]
+    filter = request.get_json().items()
+    filter = [getattr(table, key) == value for key, value in filter]
     data = session.query(table).filter(and_(*filter)).all()
+    session.commit()
+    session.close()
     return jsonify(data), 200
-
 
 # Get item
 @app.route('/api/item/<int:id>', methods=['GET'])
 def get_item(id):
     session = dbcontext.get_session()
     data = session.query(Item).filter(Item.id == id).first()
+    session.commit()
+    session.close()
     return jsonify(data), 200
 
 # create item
@@ -56,7 +59,50 @@ def create_item():
     blueprint["session"] = session
     item = factory.createItemFromDict(blueprint)
     session.add(item)
+    session.commit()
+    session.close()
     return item.id, 200
+
+# update item
+@app.route('/api/item/<int:id>', methods=['PUT'])
+def update_item(id):
+    session = dbcontext.get_session()
+    blueprint = request.get_json().items()
+    item = session.query(Item).filter(Item.id == id).first()
+    for key, value in blueprint:
+        item[key] = value
+    session.commit()
+    session.close()
+    return item.id, 200
+
+# update item(s)
+@app.route('/api/item/<str:table_name>', methods=['PUT'])
+def update_item(table_name):
+    session = dbcontext.get_session()
+    table = models.get(table_name.lower())
+    request = request.get_json()
+    filter = request[0].items()
+    filter = [getattr(table, key) == value for key, value in filter]
+    data = session.query(table).filter(and_(*filter)).all()
+    ids = []
+    for item in data:
+        ids.append(item.id)
+        for key, value in request[1].items():
+            item[key] = value
+    session.commit()
+    session.close()
+    return ids, 200
+
+# remove item
+@app.route('/api/item/<int:id>', methods=['DELETE'])
+def update_item(id):
+    session = dbcontext.get_session()
+    data = session.query(Item).filter(Item.id == id).first()
+    session.delete(data)
+    session.commit()
+    session.close()
+    return True, 200
+
 
 
 
