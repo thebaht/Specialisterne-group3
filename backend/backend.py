@@ -85,7 +85,7 @@ def update_item(id):
 def update_items(table_name):
     session = dbcontext.get_session()
     try:
-        table = models.get(table_name.lower())
+        table = models.TABLES[table_name.lower()]
         request = request.get_json()
         filter = request[0].items()
         filter = [getattr(table, key) == value for key, value in filter]

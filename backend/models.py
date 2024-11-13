@@ -185,7 +185,7 @@ def __get_tables__():
         if not found_base and obj in tables:
             tables.remove(obj)
         
-    return {(table.__name__.lower(), table) for table in tables}
+    return {table.__name__.lower(): table for table in tables}
 
 TABLES = __get_tables__()
                    
