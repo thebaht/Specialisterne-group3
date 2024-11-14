@@ -21,12 +21,11 @@ class Factory:
         self.id = start_id
 
     # Create from dict
-    def createItemFromDict(self, session, dictArg):
-        return self.createItem(session, **dictArg)
+    def createItemFromDict(self, dictArg):
+        return self.createItem(**dictArg)
 
     def createItem(
         self,
-        session: Session,
         item_type: str,
         name: str,
         manufacturer: str | int,
@@ -81,22 +80,46 @@ class Factory:
                 continue
 
             ref_class = field.mapper.entity
+            print("ref_class")
             print(ref_class)
             if isinstance(value, ref_class):
                 continue
-
+            ## NEW
+            # Det viser sig at factory IKKE behøver session alligvel
+            # for at instantiere felter som er referencer.
+            # Hvis man instantierer eksempelvis manufacturen her (Manufactuerer(name=value)), 
+            # finder databasen self ud af at forbinde den vores Item med den rette manufactuerer.
+            # Også hvis manufacturer ikke findes i databasen endnu.
+            # Dette gælder dog kun for "name" feltet. Id fungerer kun hvis den refererede allerede er 
+            # i databasen. Prøv eksempelvis "backend.py" ved: "#! Populate db with itemValue.py here"
+            # at køre "add_all_items" før "add_all_characters" og se det gå galt.
+            
+            # Potentielle problemer:
+            # Vi kan ikke lave f.eks figures med en character, medmindre character allerede findes i databasen
+            # Character kræver både name og franchise, og vi kan kun give navn
+            # Det kan omgås ved at give den nye krakter som argument til factory (hvilket lidt går uden om formålet med en factory)
+            # Se eksemplet med sherlock i "backend.py.add_all_items"
             if isinstance(value, int):
-                select = getattr(ref_class, 'id')
+                ref = ref_class(id=value)
             elif isinstance(value, str):
-                select = getattr(ref_class, 'name')
+                ref = ref_class(name=value)
             else:
                 raise ItemValueException()
+            kwargs[key] = ref
+            ## ORIGINAL
+            # if isinstance(value, int):
+            #     select = getattr(ref_class, 'id')
+            # elif isinstance(value, str):
+            #     select = getattr(ref_class, 'name')
+            # else:
+            #     raise ItemValueException()
 
-            stmt = sql.select(ref_class).where(select == value)
-            if ref := session.scalars(stmt).one_or_none():
-                kwargs[key] = ref
-            else:
-                raise ItemReferenceException()
+            # stmt = sql.select(ref_class).where(select == value)
+            # if ref := session.scalars(stmt).one_or_none():
+            #     kwargs[key] = ref
+            # else:
+            #     print(key, value)
+            #     raise ItemReferenceException()
         
         try:
             item = item_class(**kwargs)

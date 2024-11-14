@@ -4,6 +4,7 @@ from factory import Factory
 from sqlalchemy import update, and_
 from flask import Flask, jsonify, request
 from factory import *
+import itemValue
 
 dbcontext = DatabaseContext()
 dbcontext.clear_database()
@@ -12,7 +13,28 @@ app = Flask(__name__)
 
 
 #! Populate db with itemValue.py here
-
+with dbcontext.get_session() as S:
+    def add_all_items():
+        S.add_all([
+            *itemValue.create_boardGames(factory),
+            *itemValue.create_collectibleFigures(factory),
+            *itemValue.create_tabletopFigures(factory),
+            factory.createItemFromDict({
+                "item_type": "collectiblefigure",
+                "name": "Sherlock Holmes",
+                "description": "OG detective",
+                "price": 200,
+                "manufacturer": "Hasbro",
+                "character":Character(name="Sherlock",franchise=""), # Will not accept empty input, but will accept empty string!
+                "dimensions":(20.0, 7.0, 7.0)
+            })
+        ])
+        S.commit()
+    def add_characters():
+        S.add_all(itemValue.create_characters())
+        S.commit()
+    add_characters()
+    add_all_items()
 #! ..................................
 
 
