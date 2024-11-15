@@ -129,7 +129,7 @@ class ToolType(Base):
     __tablename__ = "tool_type"
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(30))
-    usage_desciption: Mapped[str] = mapped_column(String(30))
+    usage_desciption: Mapped[str] = mapped_column(String(100))
     tools: Mapped[List["Tool"]] = relationship(
         back_populates="tool_type", cascade="all, delete-orphan"
     )
@@ -150,7 +150,7 @@ class SupplyType(Base):
     __tablename__ = "supply_type"
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(30))
-    usage_desciption: Mapped[str] = mapped_column(String(30))
+    usage_desciption: Mapped[str] = mapped_column(String(100))
     supplies: Mapped[List["Supply"]] = relationship(
         back_populates="supply_type", cascade="all, delete-orphan"
     )
