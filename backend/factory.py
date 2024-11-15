@@ -9,10 +9,13 @@ class ItemNameException(Exception):
 class ItemKeyException(Exception):
     pass
 
-class ItemValueException(Exception):
+class ItemTypeException(Exception):
     pass
 
 class ItemReferenceException(Exception):
+    pass
+
+class ItemInitException(Exception):
     pass
 
 
@@ -29,7 +32,7 @@ class Factory:
         session: Session,
         item_type: str,
         name: str,
-        manufacturer: str | int,
+        manufacturer: models.Manufacturer | str | int,
         description: str,
         price: float,
         quantity: int=1,
@@ -72,6 +75,8 @@ class Factory:
                     "num_players_max": max,
                 })
 
+        kwargs = {k: v for k, v in kwargs.items() if v is not None}
+
         for key, value in kwargs.items():
             if not hasattr(item_class, key):
                 raise ItemKeyException(key)
@@ -86,21 +91,21 @@ class Factory:
                 continue
 
             if isinstance(value, int):
-                select = getattr(ref_class, 'id')
+                column = getattr(ref_class, 'id')
             elif isinstance(value, str):
-                select = getattr(ref_class, 'name')
+                column = getattr(ref_class, 'name')
             else:
-                raise ItemValueException()
+                raise ItemTypeException(key, value)
 
-            stmt = sql.select(ref_class).where(select == value)
+            stmt = sql.select(ref_class).where(column == value)
             if ref := session.scalars(stmt).one_or_none():
                 kwargs[key] = ref
             else:
-                raise ItemReferenceException()
-        
+                raise ItemReferenceException(key, value)
+
         try:
             item = item_class(**kwargs)
-        except TypeError as e:
-            raise ItemKeyException(e)
+        except Exception as e:
+            raise ItemInitException(e)
 
         return item
