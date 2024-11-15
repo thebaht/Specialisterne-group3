@@ -56,7 +56,7 @@ def create_item():
     try:
         blueprint = request.get_json().items()
         blueprint["session"] = session
-        item = factory.createItemFromDict(blueprint)
+        item = factory.create_item_from_dict(blueprint)
         session.add(item)
         session.commit()
     except Exception as e:

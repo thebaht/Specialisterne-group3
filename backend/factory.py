@@ -20,15 +20,26 @@ class ItemInitException(Exception):
 
 
 class Factory:
-    def __init__(self, start_id=0):
-        self.id = start_id
+    def create_manufacturer(name: str) -> models.Manufacturer:
+        return models.Manufacturer(name=name)
+
+    def create_genre(name: str) -> models.Genre:
+        return models.Genre(name=name)
+
+    def create_character(franchise: str, name: str) -> models.Character:
+        return models.Character(franchise=franchise, name=name)
+
+    def create_tool_type(name: str, usage_description: str) -> models.ToolType:
+        return models.ToolType(name=name, usage_description=usage_description)
+
+    def create_supply_type(name: str, usage_description: str) -> models.SupplyType:
+        return models.SupplyType(name=name, usage_description=usage_description)
 
     # Create from dict
-    def createItemFromDict(self, session, dictArg):
-        return self.createItem(session, **dictArg)
+    def create_item_from_dict(session, dictArg):
+        return Factory.create_item(session, **dictArg)
 
-    def createItem(
-        self,
+    def create_item(
         session: Session,
         item_type: str,
         name: str,
