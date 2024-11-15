@@ -97,6 +97,7 @@ class Factory:
                 continue
 
             ref_class = field.mapper.entity
+            print("ref_class")
             print(ref_class)
             if isinstance(value, ref_class):
                 continue

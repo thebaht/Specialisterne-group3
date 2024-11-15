@@ -27,7 +27,7 @@ class Item(Base):
     manufacturer_id: Mapped[int] = mapped_column(ForeignKey("manufacturer.id"))
     manufacturer: Mapped["Manufacturer"] = relationship(back_populates="items")
     name: Mapped[str] = mapped_column(String(30))
-    description: Mapped[str] = mapped_column(String(30))
+    description: Mapped[str] = mapped_column(String(100))
     quantity: Mapped[int]
     price: Mapped[float]
     discount: Mapped[Optional[float]]
@@ -64,7 +64,7 @@ class Game(Item):
 class BoardGame(Game):
     __tablename__ = "board_game"
     id: Mapped[int] = mapped_column(ForeignKey("game.id"), primary_key=True)
-    edition: Mapped[int]
+    edition: Mapped[int] = 1
 
     __mapper_args__ = {
         "polymorphic_identity": "board_game",
