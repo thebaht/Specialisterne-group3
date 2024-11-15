@@ -1,3 +1,4 @@
+from sqlalchemy.orm import Session
 from sqlalchemy import create_engine, Column, Integer, String, Float
 from sqlalchemy.orm import sessionmaker, declarative_base
 from dbinfo import connection_string
@@ -10,7 +11,7 @@ class DatabaseContext:
         self.Session = sessionmaker(bind=self.engine)
         Base.metadata.create_all(self.engine)
 
-    def get_session(self):
+    def get_session(self) -> Session:
         """Start a new database session."""
         return self.Session()
 
