@@ -20,6 +20,7 @@ def create_genre():
     return [
         Factory.create_genre(name="Eurogame"),
         Factory.create_genre(name="NAgame"),
+        Factory.create_genre(name="Cards"),
     ]
 
 
@@ -93,7 +94,7 @@ def create_boardGames(session):
             "description": "Play a landlord",
             "price": 50,
             "manufacturer": "Bootlegs R Me",
-            "num_players": [2, 6],
+            "num_players": [2, 10],
             "min_age": 6,
             "genre": "NAgame"
         }),

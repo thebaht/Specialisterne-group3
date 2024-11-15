@@ -1,10 +1,10 @@
 from dbcontext import *
 from factory import Factory
-# from itemValue import *
 from sqlalchemy import update, and_
 from flask import Flask, jsonify, request
 from factory import *
 import itemValue
+from sqlalchemy.inspection import inspect
 
 dbcontext = DatabaseContext()
 dbcontext.clear_database()
@@ -32,7 +32,7 @@ with dbcontext.get_session() as S:
 #! ..................................
 
 def serialize_model(obj: Base):
-    return {c.name: getattr(obj, c.name) for c in obj.__table__.columns}
+    return {c.key: getattr(obj, c.key) for c in inspect(obj).mapper.column_attrs if not isinstance(getattr(obj, c.key), Base)}
 
 # Get item(s)
 @app.route('/api/items/<string:table_name>', methods=['GET'])
@@ -40,16 +40,20 @@ def get_items(table_name):
     session = dbcontext.get_session()
     try:
         table = models.TABLES[table_name.lower()]
-        filter = request.json.items()
-        filter = [getattr(table, key) == value for key, value in filter]
-        data = session.query(table).filter(and_(*filter)).all()
+        try:
+            filter = request.json.items()
+            filter = [getattr(table, key) == value for key, value in filter]
+            data = session.query(table).filter(and_(*filter)).all()
+        except Exception:    
+            data = session.query(table).all()
+        data = [serialize_model(obj) for obj in data]
         session.commit()
     except Exception as e:
         session.rollback()
-        return e, 400
+        return str(e), 400
     finally:
         session.close()
-    return jsonify([serialize_model(obj) for obj in data]), 200
+    return jsonify(data), 200
 
 # Get item
 @app.route('/api/item/<int:id>', methods=['GET'])
@@ -57,47 +61,57 @@ def get_item(id):
     session = dbcontext.get_session()
     try:
         data = session.query(Item).filter(Item.id == id).first()
+        data = serialize_model(data)
         session.commit()
     except Exception as e:
         session.rollback()
-        return e, 400
+        return str(e), 400
     finally:
         session.close()
-    return jsonify(serialize_model(data)), 200
+    return jsonify(data), 200
+
+
+
 
 # create item
 @app.route('/api/item', methods=['POST'])
 def create_item():
     session = dbcontext.get_session()
     try:
-        blueprint = request.get_json().items()
-        blueprint["session"] = session
-        item = Factory.create_item_from_dict(blueprint)
+        blueprint = dict(request.json.items())
+        item = Factory.create_item_from_dict(session, blueprint)
         session.add(item)
         session.commit()
+        data = serialize_model(item)
     except Exception as e:
         session.rollback()
-        return e, 400
+        return str(e), 400
     finally:
         session.close()
-    return item.id, 200
+    return jsonify(data), 200
+
+
+
 
 # update item
 @app.route('/api/item/<int:id>', methods=['PUT'])
 def update_item(id):
     session = dbcontext.get_session()
     try:
-        blueprint = request.get_json().items()
+        blueprint = dict(request.json.items())
         item = session.query(Item).filter(Item.id == id).first()
         for key, value in blueprint:
             item[key] = value
         session.commit()
+        data = serialize_model(item)
     except Exception as e:
         session.rollback()
-        return e, 400
+        return str(e), 400
     finally:
         session.close()
-    return item.id, 200
+    return jsonify(data), 200
+
+
 
 # update item(s)
 @app.route('/api/items/<string:table_name>', methods=['PUT'])
@@ -105,22 +119,28 @@ def update_items(table_name):
     session = dbcontext.get_session()
     try:
         table = models.TABLES[table_name.lower()]
-        request = request.get_json()
-        filter = request[0].items()
-        filter = [getattr(table, key) == value for key, value in filter]
-        data = session.query(table).filter(and_(*filter)).all()
+        try:
+            re = request.json
+            filter = re[0].items()
+            filter = [getattr(table, key) == value for key, value in filter]
+            data = session.query(table).filter(and_(*filter)).all()
+        except Exception:    
+            data = session.query(table).all()
+        data = [serialize_model(obj) for obj in data]
         ids = []
         for item in data:
             ids.append(item.id)
-            for key, value in request[1].items():
+            for key, value in re[1].items():
                 item[key] = value
         session.commit()
     except Exception as e:
         session.rollback()
-        return e, 400
+        return str(e), 400
     finally:
         session.close()
-    return ids, 200
+    return jsonify(ids), 200
+
+
 
 # remove item
 @app.route('/api/item/<int:id>', methods=['DELETE'])
@@ -132,10 +152,10 @@ def remove_item(id):
         session.commit()
     except Exception as e:
         session.rollback()
-        return e, 400
+        return str(e), 400
     finally:
         session.close()
-    return True, 200
+    return "deleted", 200
 
 
 
