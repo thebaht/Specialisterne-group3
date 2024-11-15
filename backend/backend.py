@@ -15,6 +15,8 @@ app = Flask(__name__)
 
 #! ..................................
 
+def serialize_model(obj: Base):
+    return {c.name: getattr(obj, c.name) for c in obj.__table__.columns}
 
 # Get item(s)
 @app.route('/api/items/<string:table_name>', methods=['GET'])
@@ -31,7 +33,7 @@ def get_items(table_name):
         return e, 400
     finally:
         session.close()
-    return jsonify(data), 200
+    return jsonify([serialize_model(obj) for obj in data]), 200
 
 # Get item
 @app.route('/api/item/<int:id>', methods=['GET'])
@@ -45,7 +47,7 @@ def get_item(id):
         return e, 400
     finally:
         session.close()
-    return jsonify(data), 200
+    return jsonify(serialize_model(data)), 200
 
 # create item
 @app.route('/api/item', methods=['POST'])
