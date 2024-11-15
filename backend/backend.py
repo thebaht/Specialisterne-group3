@@ -8,7 +8,6 @@ import itemValue
 
 dbcontext = DatabaseContext()
 dbcontext.clear_database()
-factory = Factory()
 app = Flask(__name__)
 
 
@@ -16,24 +15,19 @@ app = Flask(__name__)
 with dbcontext.get_session() as S:
     def add_all_items():
         S.add_all([
-            *itemValue.create_boardGames(factory),
-            *itemValue.create_collectibleFigures(factory),
-            *itemValue.create_tabletopFigures(factory),
-            factory.createItemFromDict({
-                "item_type": "collectiblefigure",
-                "name": "Sherlock Holmes",
-                "description": "OG detective",
-                "price": 200,
-                "manufacturer": "Hasbro",
-                "character":Character(name="Sherlock",franchise=""), # Will not accept empty input, but will accept empty string!
-                "dimensions":(20.0, 7.0, 7.0)
-            })
+            *itemValue.create_boardGames(S),
+            *itemValue.create_collectibleFigures(S),
+            *itemValue.create_tabletopFigures(S),
         ])
         S.commit()
-    def add_characters():
-        S.add_all(itemValue.create_characters())
+    def add_references():
+        S.add_all([
+            *itemValue.create_genre(),
+            *itemValue.create_manufacturers(),
+            *itemValue.create_characters(),
+        ])
         S.commit()
-    add_characters()
+    add_references()
     add_all_items()
 #! ..................................
 
@@ -78,7 +72,7 @@ def create_item():
     try:
         blueprint = request.get_json().items()
         blueprint["session"] = session
-        item = factory.create_item_from_dict(blueprint)
+        item = Factory.create_item_from_dict(blueprint)
         session.add(item)
         session.commit()
     except Exception as e:
@@ -222,7 +216,6 @@ def remove_item(id):
 
     # session.commit()
 
-    # F = Factory()
     # spaceMarine = F.createItem(
     #     session,
     #     "tabletopfigure", 

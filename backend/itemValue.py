@@ -2,69 +2,71 @@ from factory import Factory
 from models import Character
 # data which when fed into a factory, should produce an object
 
-character_ids = {
-    1: "Iron Man",
-    2: "The Predator",
-    3: "Fedtmule",
-    4: "Mary poppins",
-    5: "Sonic the Hedgehog",
-    6: "Super Man",
-    7: "Darth Vader",
-}
+
 def create_characters():
     return [
-        Character(name="Iron Man",franchise=""),
-        Character(name="The Predator", franchise=""),
-        Character(name="Fedtmule", franchise=""),
-        Character(name="Mary poppins", franchise=""),
-        Character(name="Sonic the Hedgehog", franchise=""),
-        Character(name="Super Man", franchise=""),
-        Character(name="Darth Vader",franchise=""),
+        Factory.create_character(name="Iron Man",franchise="Marvel"),
+        Factory.create_character(name="The Predator", franchise="Predator"),
+        Factory.create_character(name="Fedtmule", franchise="Disney"),
+        Factory.create_character(name="Mary Poppins", franchise="Mary Poppins"),
+        Factory.create_character(name="Sonic the Hedgehog", franchise="Sonic the Hedgehog"),
+        Factory.create_character(name="Super Man", franchise="DC comics"),
+        Factory.create_character(name="Darth Vader",franchise="Star Wars"),
+        Factory.create_character(name="Sherlock Holmes",franchise="Sherlock Holmes"),
+    ]
+    
+    
+def create_genre():
+    return [
+        Factory.create_genre(name="Eurogame"),
+        Factory.create_genre(name="NAgame"),
     ]
 
-# temp manufacturers temp
-manufacturer_ids = {
-    1: "Hasbro",
-    2: "Games Workshop",
-    3: "Days of Wonder",
-    4: "Revolutionary Games",
-    5: "Bootlegs R Me",
-    6: "Marvel",
-    7: "Disney"
-}
 
-
-
-
-def create_collectibleFigures(F: Factory):
+def create_manufacturers():
     return [
-        F.create_item("collectiblefigure", "Iron Man", "Marvel",
-                    "Painted plastic", 250, character_id=1,
+        Factory.create_manufacturer(name="Hasbro"),
+        Factory.create_manufacturer(name="Games Workshop"),
+        Factory.create_manufacturer(name="Days of Wonder"),
+        Factory.create_manufacturer(name="Revolutionary Games"),
+        Factory.create_manufacturer(name="Bootlegs R Me"),
+        Factory.create_manufacturer(name="Marvel"),
+        Factory.create_manufacturer(name="Disney"),
+    ]
+
+
+def create_collectibleFigures(session):
+    return [
+        Factory.create_item(session, "collectiblefigure", "Iron Man", "Marvel",
+                    "Painted plastic", 250, character="Iron Man",
                     dimensions=(20.0, 7.0, 7.0)),
-        F.create_item("collectiblefigure", "The Predator", "Hasbro",
-                    "Painted plastic", 250, character_id=2,
+        Factory.create_item(session, "collectiblefigure", "The Predator", "Hasbro",
+                    "Painted plastic", 250, character="The Predator",
                     dimensions=(20.0, 7.0, 7.0)),
-        F.create_item("collectiblefigure", "Fedtmule", "Disney",
-                    "Painted plastic", 350, character_id=3,
+        Factory.create_item(session, "collectiblefigure", "Fedtmule", "Disney",
+                    "Painted plastic", 350, character="Fedtmule",
                     dimensions=(30.0, 7.0, 7.0)),
-        F.create_item("collectiblefigure", "Mary poppins, with umbrella", "Bootlegs R Me",
-                    "Painted plastic", 200, character_id=4,
+        Factory.create_item(session, "collectiblefigure", "Mary poppins, with umbrella", "Bootlegs R Me",
+                    "Painted plastic", 200, character="Mary poppins",
                     dimensions=(15.0, 6.0, 6.0)),
-        F.create_item("collectiblefigure", "Sonic the Hedgehog", "Hasbro",
-                    "Painted plastic", 200, character_id=5,
+        Factory.create_item(session, "collectiblefigure", "Sonic the Hedgehog", "Hasbro",
+                    "Painted plastic", 200, character="Sonic the Hedgehog",
                     dimensions=(10.0, 7.0, 7.0)),
-        F.create_item("collectiblefigure", "Super Man (vs batman edition)", "Hasbro",
-                    "Painted plastic", 200, character_id=6,
+        Factory.create_item(session, "collectiblefigure", "Super Man (vs batman edition)", "Hasbro",
+                    "Painted plastic", 200, character="Super Man",
                     dimensions=(20.0, 7.0, 7.0)),
-        F.create_item("collectiblefigure", "Darth Vader without mask", "Disney",
-                    "Painted plastic", 250, character_id=7,
+        Factory.create_item(session, "collectiblefigure", "Darth Vader without mask", "Disney",
+                    "Painted plastic", 250, character="Darth Vader",
+                    dimensions=(20.0, 7.0, 7.0)),
+        Factory.create_item(session, "collectiblefigure", "Sherlock Holmes", "Hasbro",
+                    "OG detective", 250, character="Sherlock Holmes",
                     dimensions=(20.0, 7.0, 7.0)),
         ]
 
 
-def create_boardGames(F: Factory):
+def create_boardGames(session):
     return [
-        F.createItemFromDict({
+        Factory.create_item_from_dict(session, {
             "item_type": "boardgame",
             "name": "Settlers of Cataan",
             "description": "Classic eurogame",
@@ -72,9 +74,10 @@ def create_boardGames(F: Factory):
             "manufacturer": "Hasbro",
             "num_players": [2, 5],
             "min_age": 6,
-            "genre": "Eurogame"
+            "genre": "Eurogame",
+            "edition": 2
         }),
-        F.createItemFromDict({
+        Factory.create_item_from_dict(session, {
             "item_type": "boardgame",
             "name": "Ticket to ride",
             "description": "Classic eurogame",
@@ -84,7 +87,7 @@ def create_boardGames(F: Factory):
             "min_age": 6,
             "genre": "Eurogame"
         }),
-        F.createItemFromDict({
+        Factory.create_item_from_dict(session, {
             "item_type": "boardgame",
             "name": "Money Polly",
             "description": "Play a landlord",
@@ -92,14 +95,14 @@ def create_boardGames(F: Factory):
             "manufacturer": "Bootlegs R Me",
             "num_players": [2, 6],
             "min_age": 6,
-            "genre": "Eurogame"
+            "genre": "NAgame"
         }),
     ]
 
 
-def create_tabletopFigures(F: Factory):
+def create_tabletopFigures(session):
     return [
-        *[F.createItemFromDict({
+        *[Factory.create_item_from_dict(session, {
             "item_type": "tabletopfigure",
             "name": name,
             "description": f"Basic {name} squad",

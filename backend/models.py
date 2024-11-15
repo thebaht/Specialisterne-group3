@@ -64,7 +64,7 @@ class Game(Item):
 class BoardGame(Game):
     __tablename__ = "board_game"
     id: Mapped[int] = mapped_column(ForeignKey("game.id"), primary_key=True)
-    edition: Mapped[int] = 1
+    edition: Mapped[int] = mapped_column(default=1)
 
     __mapper_args__ = {
         "polymorphic_identity": "board_game",
