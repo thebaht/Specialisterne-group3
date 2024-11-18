@@ -154,6 +154,43 @@ def remove_item(id):
         session.close()
     return "deleted", 200
 
+
+@app.route('/api/test/items/<string:table_name>', methods=['GET'])
+def get_items_test(table_name):
+    nested = dbcontext.start_nested_session()
+    ret = get_items(table_name)
+    dbcontext.rollback_nested_session(nested)
+    return ret
+@app.route('/api/test/item/<string:table_name>/<int:id>', methods=['GET'])
+def get_item_test(table_name, id):
+    nested = dbcontext.start_nested_session()
+    ret = get_item(table_name, id)
+    dbcontext.rollback_nested_session(nested)
+    return ret
+@app.route('/api/test/item/', methods=['POST'])
+def create_item_test():
+    nested = dbcontext.start_nested_session()
+    ret = create_item()
+    dbcontext.rollback_nested_session(nested)
+    return ret
+@app.route('/api/test/item/<string:table_name>/<int:id>', methods=['PUT'])
+def update_item_test(table_name, id):
+    nested = dbcontext.start_nested_session()
+    ret = update_item(table_name, id)
+    dbcontext.rollback_nested_session(nested)
+    return ret
+@app.route('/api/test/items/<string:table_name>', methods=['PUT'])
+def update_items_test(table_name):
+    nested = dbcontext.start_nested_session()
+    ret = update_items(table_name)
+    dbcontext.rollback_nested_session(nested)
+    return ret
+@app.route('/api/test/item/<int:id>', methods=['DELETE'])
+def remove_item_test(id):
+    nested = dbcontext.start_nested_session()
+    ret = remove_item(id)
+    dbcontext.rollback_nested_session(nested)
+    return ret
 # if __name__ == "__main__":
 #     populate_db()
 
