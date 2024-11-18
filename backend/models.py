@@ -238,6 +238,13 @@ def __get_tables__() -> List[Table]:
 
 TABLES = __get_tables__()
 
+def TABLES_GET(name: str):
+    def matches_table(table: Table, name: str):
+        lower = name.lower()
+        return table.name.lower() == lower or table.table.lower() == lower
+
+    return next(filter(lambda t: matches_table(t, name), TABLES), None)
+
 def __is_item_family_leaf__(cls) -> List[Table]:
     # check if cls is a subclass of Item
     is_item = False
