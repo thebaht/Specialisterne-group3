@@ -76,7 +76,7 @@ def get_item(table_name, id):
 
 # create item
 @app.route('/api/item', methods=['POST'])
-def create_item(isTest = False):
+def create_item():
     session = dbcontext.get_session()
     try:
         blueprint = dict(request.json.items())
@@ -140,7 +140,7 @@ def update_items(table_name):
 
 # remove item
 @app.route('/api/item/<int:id>', methods=['DELETE'])
-def remove_item(id, isTest = False):
+def remove_item(id):
     session = dbcontext.get_session()
     try:
         data = session.query(Item).filter(Item.id == id).first()
