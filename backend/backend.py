@@ -39,7 +39,7 @@ def serialize_model(obj: Base):
 def get_items(table_name):
     session = dbcontext.get_session()
     try:
-        table = models.TABLES[table_name.lower()]
+        table = models.TABLES_GET[table_name].cls
         try:
             filter = request.json.items()
             filter = [getattr(table, key) == value for key, value in filter]
@@ -60,7 +60,7 @@ def get_items(table_name):
 def get_item(table_name, id):
     session = dbcontext.get_session()
     try:
-        table = models.TABLES[table_name.lower()]
+        table = models.TABLES_GET[table_name].cls
         data = session.query(table).filter(table.id == id).first()
         data = serialize_model(data)
         session.commit()
@@ -99,7 +99,7 @@ def create_item():
 def update_item(table_name, id):
     session = dbcontext.get_session()
     try:
-        table = models.TABLES[table_name.lower()]
+        table = models.TABLES_GET[table_name].cls
         blueprint = dict(request.json.items())
         # item = session.query(Item).filter(Item.id == id).first()
         # session.execute( update(Item).where(Item.id == id).values(**blueprint) )
@@ -119,7 +119,7 @@ def update_item(table_name, id):
 def update_items(table_name):
     session = dbcontext.get_session()
     try:
-        table = models.TABLES[table_name.lower()]
+        table = models.TABLES_GET[table_name].cls
         re = request.json
         blueprint = dict(re["blueprint"].items())
         try:
