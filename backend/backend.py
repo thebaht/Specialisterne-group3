@@ -36,7 +36,9 @@ def serialize_model(obj: Base):
 
 # Get item(s)
 @app.route('/api/items/<string:table_name>', methods=['GET'])
-def get_items(table_name):
+def get_items(table_name, isTest = False, testRequest=None):
+    if isTest:
+        request = testRequest
     session = dbcontext.get_session()
     try:
         table = models.TABLES[table_name.lower()]
@@ -47,28 +49,32 @@ def get_items(table_name):
         except Exception:    
             data = session.query(table).all()
         data = [serialize_model(obj) for obj in data]
-        session.commit()
     except Exception as e:
         session.rollback()
         return str(e), 400
     finally:
-        session.close()
+        if not isTest:
+            session.commit()
+            session.close()
     return jsonify(data), 200
 
 # Get item
 @app.route('/api/item/<string:table_name>/<int:id>', methods=['GET'])
-def get_item(table_name, id):
+def get_item(table_name, id, isTest = False, testRequest=None):
+    if isTest:
+        request = testRequest
     session = dbcontext.get_session()
     try:
         table = models.TABLES[table_name.lower()]
         data = session.query(table).filter(table.id == id).first()
         data = serialize_model(data)
-        session.commit()
     except Exception as e:
         session.rollback()
         return str(e), 400
     finally:
-        session.close()
+        if not isTest:
+            session.commit()
+            session.close()
     return jsonify(data), 200
 
 
@@ -76,19 +82,22 @@ def get_item(table_name, id):
 
 # create item
 @app.route('/api/item', methods=['POST'])
-def create_item():
+def create_item(isTest = False, testRequest=None):
+    if isTest:
+        request = testRequest
     session = dbcontext.get_session()
     try:
         blueprint = dict(request.json.items())
         item = Factory.create_item_from_dict(session, blueprint)
         session.add(item)
-        session.commit()
         data = serialize_model(item)
     except Exception as e:
         session.rollback()
         return str(e), 400
     finally:
-        session.close()
+        if not isTest:
+            session.commit()
+            session.close()
     return jsonify(data), 200
 
 
@@ -96,7 +105,9 @@ def create_item():
 
 # update item
 @app.route('/api/item/<string:table_name>/<int:id>', methods=['PUT'])
-def update_item(table_name, id):
+def update_item(table_name, id, isTest = False, testRequest=None):
+    if isTest:
+        request = testRequest
     session = dbcontext.get_session()
     try:
         table = models.TABLES[table_name.lower()]
@@ -104,19 +115,22 @@ def update_item(table_name, id):
         # item = session.query(Item).filter(Item.id == id).first()
         # session.execute( update(Item).where(Item.id == id).values(**blueprint) )
         data = session.query(table).filter(table.id == id).update(blueprint)
-        session.commit()
     except Exception as e:
         session.rollback()
         return str(e), 400
     finally:
-        session.close()
+        if not isTest:
+            session.commit()
+            session.close()
     return jsonify(id), 200
 
 
 
 # update item(s)
 @app.route('/api/items/<string:table_name>', methods=['PUT'])
-def update_items(table_name):
+def update_items(table_name, isTest = False, testRequest=None):
+    if isTest:
+        request = testRequest
     session = dbcontext.get_session()
     try:
         table = models.TABLES[table_name.lower()]
@@ -128,68 +142,64 @@ def update_items(table_name):
             data = session.query(table).filter(and_(*filter)).update(blueprint)
         except Exception as e:    
             data = session.query(table).update(blueprint)
-        session.commit()
     except Exception as e:
         session.rollback()
         return str(e), 400
     finally:
-        session.close()
+        if not isTest:
+            session.commit()
+            session.close()
     return jsonify(data), 200
 
 
 
 # remove item
 @app.route('/api/item/<int:id>', methods=['DELETE'])
-def remove_item(id):
+def remove_item(id, isTest = False, testRequest=None):
+    if isTest:
+        request = testRequest
     session = dbcontext.get_session()
     try:
         data = session.query(Item).filter(Item.id == id).first()
         session.delete(data)
-        session.commit()
     except Exception as e:
         session.rollback()
         return str(e), 400
     finally:
-        session.close()
+        if not isTest:
+            session.commit()
+            session.close()
     return "deleted", 200
 
 
-@app.route('/api/test/items/<string:table_name>', methods=['GET'])
-def get_items_test(table_name):
-    nested = dbcontext.start_nested_session()
-    ret = get_items(table_name)
-    dbcontext.rollback_nested_session(nested)
-    return ret
-@app.route('/api/test/item/<string:table_name>/<int:id>', methods=['GET'])
-def get_item_test(table_name, id):
-    nested = dbcontext.start_nested_session()
-    ret = get_item(table_name, id)
-    dbcontext.rollback_nested_session(nested)
-    return ret
-@app.route('/api/test/item/', methods=['POST'])
-def create_item_test():
-    nested = dbcontext.start_nested_session()
-    ret = create_item()
-    dbcontext.rollback_nested_session(nested)
-    return ret
-@app.route('/api/test/item/<string:table_name>/<int:id>', methods=['PUT'])
-def update_item_test(table_name, id):
-    nested = dbcontext.start_nested_session()
-    ret = update_item(table_name, id)
-    dbcontext.rollback_nested_session(nested)
-    return ret
-@app.route('/api/test/items/<string:table_name>', methods=['PUT'])
-def update_items_test(table_name):
-    nested = dbcontext.start_nested_session()
-    ret = update_items(table_name)
-    dbcontext.rollback_nested_session(nested)
-    return ret
-@app.route('/api/test/item/<int:id>', methods=['DELETE'])
-def remove_item_test(id):
-    nested = dbcontext.start_nested_session()
-    ret = remove_item(id)
-    dbcontext.rollback_nested_session(nested)
-    return ret
+# @app.route('/api/test/items/<string:table_name>', methods=['GET'])
+# def get_items_test(table_name):
+    
+#     ret = get_items(table_name, isTest=True, testRequest=request)
+    
+#     return ret
+# @app.route('/api/test/item/<string:table_name>/<int:id>', methods=['GET'])
+# def get_item_test(table_name, id):
+    
+#     ret = get_item(table_name, id, isTest=True, testRequest=request)
+    
+#     return ret
+# @app.route('/api/test/item/', methods=['POST'])
+# def create_item_test():
+#     ret = create_item(isTest=True, testRequest=request)
+#     return ret
+# @app.route('/api/test/item/<string:table_name>/<int:id>', methods=['PUT'])
+# def update_item_test(table_name, id):
+#     ret = update_item(table_name, id, isTest=True, testRequest=request)
+#     return ret
+# @app.route('/api/test/items/<string:table_name>', methods=['PUT'])
+# def update_items_test(table_name):
+#     ret = update_items(table_name, isTest=True, testRequest=request)
+#     return ret
+# @app.route('/api/test/item/<int:id>', methods=['DELETE'])
+# def remove_item_test(id):
+#     ret = remove_item(id, testRequest=True)
+#     return ret
 # if __name__ == "__main__":
 #     populate_db()
 

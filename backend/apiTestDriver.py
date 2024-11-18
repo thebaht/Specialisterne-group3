@@ -9,7 +9,7 @@ base_url = "http://127.0.0.1:5000"
 def get_items_no_filter():
     print(f"\n{"_"*25}\nget_items_no_filter_test()\n")
     table = "item"
-    endpoint = f"/api/test/items/{table}"
+    endpoint = f"/api/items/{table}"
     try:
         response = requests.get(base_url+endpoint)        
         if response.status_code == 200:
@@ -31,7 +31,7 @@ def test_get_items_no_filter():
 def get_items_empty_filter():
     print(f"\n{"_"*25}\nget_items_empty_filter_test()\n")
     table = "item"
-    endpoint = f"/api/test/items/{table}"
+    endpoint = f"/api/items/{table}"
     filter = {   }
     try:
         response = requests.get(base_url+endpoint, json=filter)
@@ -54,7 +54,7 @@ def test_get_items_empty_filter():
 def get_items_price_50():
     print(f"\n{"_"*25}\nget_items_price_50_test()\n")
     table = "item"
-    endpoint = f"/api/test/items/{table}"
+    endpoint = f"/api/items/{table}"
     filter = {
         "price": 50.0
     }
@@ -80,7 +80,7 @@ def get_item_id_1():
     print(f"\n{"_"*25}\nget_item_id_1_test()\n")
     id = 1
     table = "item"
-    endpoint = f"/api/test/item/{table}/{id}"
+    endpoint = f"/api/item/{table}/{id}"
     try:
         response = requests.get(base_url+endpoint)        
         if response.status_code == 200:
@@ -103,7 +103,7 @@ def get_item_id_out_of_range():
     print(f"\n{"_"*25}\nget_item_id_out_of_range_test()\n")
     id = 99
     table = "item"
-    endpoint = f"/api/test/item/{table}/{id}"
+    endpoint = f"/api/item/{table}/{id}"
     try:
         response = requests.get(base_url+endpoint)
         
@@ -125,7 +125,7 @@ def test_get_item_id_out_of_range():
 
 def create_item_cardgame():
     print(f"\n{"_"*25}\ncreate_item_cardgame_test()\n")
-    endpoint = f"/api/test/item"
+    endpoint = f"/api/item"
     blueprint = {
         "item_type": "cardgame",
         "name": "Plain deck",
@@ -157,7 +157,7 @@ def test_create_item_cardgame():
 
 def create_item_empty_blueprint():
     print(f"\n{"_"*25}\ncreate_item_empty_blueprint_test()\n")
-    endpoint = f"/api/test/item"
+    endpoint = f"/api/item"
     blueprint = {   }
     try:
         response = requests.post(base_url+endpoint, json=blueprint)
@@ -179,7 +179,7 @@ def test_create_item_empty_blueprint():
 
 def create_item_incomplete_blueprint():
     print(f"\n{"_"*25}\ncreate_item_incomplete_blueprint_test()\n")
-    endpoint = f"/api/test/item"
+    endpoint = f"/api/item"
     blueprint = {
         "item_type": "cardgame",
         "name": "Plain deck2",
@@ -211,7 +211,7 @@ def test_create_item_incomplete_blueprint():
 def remove_item_id_17():
     print(f"\n{"_"*25}\nremove_item_id_17_test()\n")
     id = 17
-    endpoint = f"/api/test/item/{id}"
+    endpoint = f"/api/item/{id}"
     try:
         response = requests.delete(base_url+endpoint)
         if response.status_code == 200:
@@ -233,7 +233,7 @@ def test_remove_item_id_17():
 def remove_item_id_out_of_range():
     print(f"\n{"_"*25}\nremove_item_id_out_of_range_test()\n")
     id = 99
-    endpoint = f"/api/test/item/{id}"
+    endpoint = f"/api/item/{id}"
     try:
         response = requests.delete(base_url+endpoint)
         if response.status_code == 200:
@@ -256,7 +256,7 @@ def update_item_id_1_discount_40():
     print(f"\n{"_"*25}\nupdate_item() | id == 1, discount -> 40\n")
     id = 1
     table = "item"
-    endpoint = f"/api/test/item/{table}/{id}"
+    endpoint = f"/api/item/{table}/{id}"
     blueprint = {
         "discount": 40
     }
@@ -281,7 +281,7 @@ def test_update_item_id_1_discount_40():
 def update_items_boardgame_price_175_discount_50():
     print(f"\n{"_"*25}\nupdate_item() | type == board_game, price -> 175, discount -> 2\n")
     table = "item"
-    endpoint = f"/api/test/items/{table}"
+    endpoint = f"/api/items/{table}"
     filter = {
         "type": "collectible_figure"
     }
@@ -314,7 +314,7 @@ def test_update_items_boardgame_price_175_discount_50():
 def get_update_manufacturers():
     print(f"\n{"_"*25}\nupdate manufacturers from marvel to disney\n")
     table = "manufacturer"
-    endpoint = f"/api/test/items/{table}"
+    endpoint = f"/api/items/{table}"
     filter = {"name": "Marvel"}
     try:
         response = requests.get(base_url+endpoint,json=filter)
@@ -339,7 +339,7 @@ def get_update_manufacturers():
         print(e)
     
     table = "item"
-    endpoint = f"/api/test/items/{table}"
+    endpoint = f"/api/items/{table}"
     filter = {"manufacturer_id": marvel_id}
     blueprint = {"manufacturer_id": disney_id}
     args = {"filter": filter, "blueprint": blueprint}
