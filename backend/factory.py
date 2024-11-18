@@ -4,19 +4,38 @@ from sqlalchemy.orm import Session
 
 
 class ItemNameException(Exception):
-    pass
+    def __str__(self):
+        return f"No item or table with name \"{self.args[0]}\" exists"
 
 class ItemKeyException(Exception):
-    pass
+    def __str__(self):
+        return f"No column or mapping with name \"{self.args[1]}\" exists in table \"{self.args[0].table}\" or class \"{self.args[0].name}\""
 
 class ItemTypeException(Exception):
-    pass
+    def __str__(self):
+        if self.args[1].name == self.args[2]:
+            return f"Invalid type \"{type(self.args[3]).__name__}\" given for column \"{self.args[1].name}\" with type \"{self.args[1].type.__name__}\" in table \"{self.args[0].table}\""
+        else:
+            return f"Invalid type \"{type(self.args[3]).__name__}\" given for mapping \"{self.args[1].mapper}\" in class \"{self.args[0].name}\""
 
 class ItemReferenceException(Exception):
-    pass
+    def __str__(self):
+        if isinstance(self.args[4], int):
+            return f"No row in table \"{self.args[1].table}\" with an ID of \"{self.args[4]}\""
+        else:
+            return f"No row in table \"{self.args[1].table}\" with the name \"{self.args[4]}\""
+         
+class ItemIncompleteException(Exception):
+    def __str__(self):
+        string = f"Missing required column \"{self.args[1].name}\" in table \"{self.args[0].table}\""
+        if self.args[1].mapper:
+            string += f" or associated mapping \"{self.args[1].mapper}\" for class \"{self.args[0].name}\""
+
+        return string
 
 class ItemInitException(Exception):
-    pass
+    def __str__(self):
+        return f"Failed at creating an instance of class \"{self.args[0].name}\": {self.args[1]}"
 
 
 class Factory:
@@ -50,11 +69,11 @@ class Factory:
         **kwargs,
     ):
         try:
-            def matches_class(item_class, name):
+            def matches_item(item: models.Table, name):
                 lower = name.lower()
-                return item_class.__name__.lower() == lower or item_class.__tablename__.lower() == lower
+                return item.name.lower() == lower or item.table.lower() == lower
 
-            item_class = next((ic for ic in models.ITEMS if matches_class(ic, item_type)))
+            table = next((item for item in models.ITEMS if matches_item(item, item_type)))
         except StopIteration:
             raise ItemNameException(item_type)
 
@@ -67,7 +86,7 @@ class Factory:
             "discount": 0.0,
         })
 
-        if issubclass(item_class, models.Figure):
+        if issubclass(table.cls, models.Figure):
             if "dimensions" in kwargs:
                 length, width, height = kwargs["dimensions"]
                 del kwargs["dimensions"]
@@ -77,7 +96,7 @@ class Factory:
                     "height": height,
                 })
 
-        if issubclass(item_class, models.Game):
+        if issubclass(table.cls, models.Game):
             if "num_players" in kwargs:
                 min, max = kwargs["num_players"]
                 del kwargs["num_players"]
@@ -86,38 +105,56 @@ class Factory:
                     "num_players_max": max,
                 })
 
+        # filter out None values
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
+        def is_required_column(column: models.TableColumn):
+            return column.name != 'type' and not column.optional and column.inst.default is None and not column.primary_key
+        required_columns = {column.name: column for column in table.columns if is_required_column(column)}
+
         for key, value in kwargs.items():
-            if not hasattr(item_class, key):
-                raise ItemKeyException(key)
+            column = table.get_column(key)
+            if not column:
+                raise ItemKeyException(table, key, value)
 
-            field = getattr(item_class, key)
-            if not hasattr(field, 'mapper'):
-                continue
+            if not column.foreign_keys:
+                if type(value) == column.type or (type(value) is int and column.type is float):
+                    if column.name in required_columns.keys():
+                        del required_columns[column.name]
+                    continue
+                else:
+                    raise ItemTypeException(table, column, key, value)
 
-            ref_class = field.mapper.entity
-            print("ref_class")
-            print(ref_class)
-            if isinstance(value, ref_class):
-                continue
-
+            foreign_key = next(iter(column.foreign_keys))
+            foreign_table = next(filter(lambda t: t.table == foreign_key.column.table.name, models.TABLES))
+            
+            is_mapper = key == column.mapper
             if isinstance(value, int):
-                column = getattr(ref_class, 'id')
-            elif isinstance(value, str):
-                column = getattr(ref_class, 'name')
+                foreign_column = getattr(foreign_table.cls, 'id')
+            elif is_mapper and isinstance(value, str):
+                foreign_column = getattr(foreign_table.cls, 'name')
+            elif is_mapper and isinstance(value, foreign_table.cls):
+                if column.name in required_columns.keys():
+                    del required_columns[column.name]
+                continue
             else:
-                raise ItemTypeException(key, value)
+                raise ItemTypeException(table, column, key, value)
 
-            stmt = sql.select(ref_class).where(column == value)
+            stmt = sql.select(foreign_table.cls).where(foreign_column == value)
             if ref := session.scalars(stmt).one_or_none():
                 kwargs[key] = ref
             else:
-                raise ItemReferenceException(key, value)
+                raise ItemReferenceException(table, foreign_table, column, key, value)
+            
+            if column.name in required_columns.keys():
+                del required_columns[column.name]
+
+        for column in required_columns.values():
+            raise ItemIncompleteException(table, column)
 
         try:
-            item = item_class(**kwargs)
+            item = table.cls(**kwargs)
         except Exception as e:
-            raise ItemInitException(e)
+            raise ItemInitException(table, e)
 
         return item

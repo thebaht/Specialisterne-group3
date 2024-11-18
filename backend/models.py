@@ -1,6 +1,8 @@
-from typing import List, Optional
+from dataclasses import dataclass
+from typing import Set, List, Optional
 from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+from sqlalchemy.sql.schema import Column, ForeignKey
 
 class Base(DeclarativeBase):
     pass
@@ -167,54 +169,100 @@ class Supply(Item):
         "polymorphic_identity": "supply",
     }
 
-def __get_tables__():
-    import sys, inspect
-    tables = [obj for _, obj in inspect.getmembers(sys.modules[__name__]) if inspect.isclass(obj)]
-    for _, obj in inspect.getmembers(sys.modules[__name__]):
-        if not inspect.isclass(obj):
-            continue
+@dataclass
+class TableColumn:
+    inst: Column
+    name: str
+    type: object
+    optional: bool
+    primary_key: bool
+    foreign_keys: Set[ForeignKey]
+    mapper: Optional[str]
 
-        found_base = False
-        base = obj
-        while base.__bases__:
-            base = base.__bases__[0]
-            if base == Base:
-                found_base = True
-                break
+@dataclass
+class Table:
+    cls: Base
+    name: str
+    table: str
+    columns: List[TableColumn]
 
-        if not found_base and obj in tables:
-            tables.remove(obj)
+    def get_column(self, name: str):
+        return next(filter(lambda c: c.name == name or c.mapper == name, self.columns), None)
+
+def find_table(tables: List[Table], name: str) -> Optional[Table]:
+    for table in tables:
+        if name.lower() == table.name.lower() or name.lower() == table.table.lower():
+            return table
+
+    return None
+
+def __get_tables__() -> List[Table]:
+    import sys, inspect as py_inspect
+    from sqlalchemy.inspection import inspect as sa_inspect
+
+    classes = [cls for _, cls in py_inspect.getmembers(sys.modules[__name__]) if hasattr(cls, '__table__')]
+
+    tables = []
+    for cls in classes:
+        columns = (attrs.columns[0] for attrs in sa_inspect(cls).mapper.column_attrs)
+        columns = [
+            TableColumn(
+                column,
+                column.name,
+                column.type.python_type,
+                column.nullable,
+                column.primary_key,
+                column.foreign_keys,
+                None,
+            )
+            for column in columns
+        ]
+
+        # associate relationship fields with columns
+        mappers = {attr: getattr(cls, attr).mapper for attr in dir(cls) if not attr.startswith('_') and hasattr(getattr(cls, attr), 'mapper')}
+        for field, mapper in mappers.items():
+            for relationship in mapper.relationships:
+                *_, mapper_column = relationship.primaryjoin.get_children()
+                column = next(filter(lambda column: column.name == mapper_column.name, columns), None)
+                if column:
+                    column.mapper = field
+
+        tables.append(Table(
+            cls,
+            cls.__name__,
+            cls.__tablename__,
+            columns,
+        ))
         
-    return {table.__name__.lower(): table for table in tables}
+    return tables
 
 TABLES = __get_tables__()
-                   
 
-def __get_items__():
-    import sys, inspect
-    items = [obj for _, obj in inspect.getmembers(sys.modules[__name__]) if inspect.isclass(obj)]
-    for _, obj in inspect.getmembers(sys.modules[__name__]):
-        if not inspect.isclass(obj):
-            continue
+def __is_item_family_leaf__(cls) -> List[Table]:
+    # check if cls is a subclass of Item
+    is_item = False
+    base = cls
+    while base.__bases__:
+        base = base.__bases__[0]
+        if base == Item:
+            is_item = True
+            break
 
-        found_item = False
-        base = obj
+    if not is_item:
+        return False
+
+    # check if another table derives from cls
+    for table in TABLES:
+        base = table.cls
         while base.__bases__:
             base = base.__bases__[0]
-            if base in items:
-                items.remove(base)
+            if base == cls:
+                return False
 
-            if base == Item:
-                found_item = True
-                break
+    return True
 
-        if not found_item and obj in items:
-            items.remove(obj)
-        
-    return items
+ITEMS = [table for table in TABLES if __is_item_family_leaf__(table.cls)]
 
-ITEMS = __get_items__()
-                   
 if __name__ == '__main__':
     # simpel test
     man = Manufacturer(name="games workshop")
@@ -232,19 +280,50 @@ if __name__ == '__main__':
 
     man.items.append(fig)
 
-    # print(ITEMS)
-    field = Figure.character
-    # print(dir(field))
+    from pprint import pp as pprint
+
+    pprint(ITEMS)
+    # print(ITEMS[0].cls.__name__)
+    # fig = next(filter(lambda i: i.cls == Figure, TABLES))
+    # key = next(iter(fig.columns[8].foreign_keys))
+    # pprint(dir(key.column))
+    # char = next(filter(lambda i: i.cls == Character, TABLES))
+    # pprint(char.columns[0].inst)
+    # print(key.column.table.name, char.columns[0].inst.table.name)
+    # print(key.column.name, char.columns[0].inst.name)
+
+   # cls = Figure
+    # idx = 1
+    # # print(dir(cls.__table__.columns[idx]))
+    # print(cls.__table__.columns)
+    # print(cls.__table__.columns[idx].name)
+    # print(cls.__table__.columns[idx].type.python_type)
+    # print(cls.__table__.columns[idx].nullable)
+    # print(cls.__table__.columns[idx].primary_key)
+    # print(cls.__table__.columns[idx].foreign_keys)
+    # for key in cls.__table__.foreign_keys:
+    #     print(key.parent.primary_key, key.column.table)
+
+    # table = next(iter(cls.__table__.columns[idx].foreign_keys)).column.table
+    # print(dir(table))
+    # print(table)
+    # column = Figure.__table__.columns[0]
+    # print(column)
+    # print(dir(column))
     # print(field.nullable)
     # print(man)
     # print([(t, type(getattr(man, t))) for t in dir(man)])
 
-    # print(hasattr(man, 'mapper'))
-    # map = man.mapper
+    # field = Figure.character
+    # print(dir(field))
+    # print(field)
+
+    # map = field.mapper
     # print(dir(map))
     # print(map)
     # print(type(map))
     # print(map.entity)
+    # print(map.columns)
     
     # prop = field.property
     # print(dir(prop))
@@ -260,4 +339,6 @@ if __name__ == '__main__':
     # print(arg)
     # print(arg.__forward_arg__)
     # print(dir(arg))
+
+    # print(ITEMS)
 
