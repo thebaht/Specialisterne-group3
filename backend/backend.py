@@ -12,6 +12,7 @@ app = Flask(__name__)
 
 
 #! Populate db with itemValue.py here
+dbcontext.clear_database()
 with dbcontext.get_session() as S:
     def add_all_items():
         S.add_all([
@@ -56,11 +57,12 @@ def get_items(table_name):
     return jsonify(data), 200
 
 # Get item
-@app.route('/api/item/<int:id>', methods=['GET'])
-def get_item(id):
+@app.route('/api/item/<string:table_name>/<int:id>', methods=['GET'])
+def get_item(table_name, id):
     session = dbcontext.get_session()
     try:
-        data = session.query(Item).filter(Item.id == id).first()
+        table = models.TABLES[table_name.lower()]
+        data = session.query(table).filter(table.id == id).first()
         data = serialize_model(data)
         session.commit()
     except Exception as e:
@@ -94,21 +96,22 @@ def create_item():
 
 
 # update item
-@app.route('/api/item/<int:id>', methods=['PUT'])
-def update_item(id):
+@app.route('/api/item/<string:table_name>/<int:id>', methods=['PUT'])
+def update_item(table_name, id):
     session = dbcontext.get_session()
     try:
+        table = models.TABLES[table_name.lower()]
         blueprint = dict(request.json.items())
-        item = session.query(Item).filter(Item.id == id).first()
-        session.execute( update(Item).where(Item.id == id).values(**blueprint) )
+        # item = session.query(Item).filter(Item.id == id).first()
+        # session.execute( update(Item).where(Item.id == id).values(**blueprint) )
+        data = session.query(table).filter(table.id == id).update(blueprint)
         session.commit()
-        data = serialize_model(item)
     except Exception as e:
         session.rollback()
         return str(e), 400
     finally:
         session.close()
-    return jsonify(data), 200
+    return jsonify(id), 200
 
 
 
@@ -118,9 +121,9 @@ def update_items(table_name):
     session = dbcontext.get_session()
     try:
         table = models.TABLES[table_name.lower()]
+        re = request.json
+        blueprint = dict(re["blueprint"].items())
         try:
-            re = request.json
-            blueprint = dict(re["blueprint"].items())
             filter = re["filter"].items()
             filter = [getattr(table, key) == value for key, value in filter]
             data = session.query(table).filter(and_(*filter)).update(blueprint)
@@ -151,7 +154,8 @@ def remove_item(id):
         session.close()
     return "deleted", 200
 
-
+# if __name__ == "__main__":
+#     populate_db()
 
 
 # #! Just testing stuff.......................................................................
