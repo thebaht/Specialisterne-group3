@@ -1,7 +1,7 @@
 from dbcontext import *
 from factory import Factory
 from sqlalchemy import update, and_
-from flask import Flask, jsonify, request
+from flask import Blueprint, Flask, jsonify, request
 from factory import *
 import itemValue
 from sqlalchemy.inspection import inspect
@@ -100,8 +100,7 @@ def update_item(id):
     try:
         blueprint = dict(request.json.items())
         item = session.query(Item).filter(Item.id == id).first()
-        for key, value in blueprint:
-            item[key] = value
+        session.execute( update(Item).where(Item.id == id).values(**blueprint) )
         session.commit()
         data = serialize_model(item)
     except Exception as e:
@@ -121,24 +120,19 @@ def update_items(table_name):
         table = models.TABLES[table_name.lower()]
         try:
             re = request.json
-            filter = re[0].items()
+            blueprint = dict(re["blueprint"].items())
+            filter = re["filter"].items()
             filter = [getattr(table, key) == value for key, value in filter]
-            data = session.query(table).filter(and_(*filter)).all()
-        except Exception:    
-            data = session.query(table).all()
-        data = [serialize_model(obj) for obj in data]
-        ids = []
-        for item in data:
-            ids.append(item.id)
-            for key, value in re[1].items():
-                item[key] = value
+            data = session.query(table).filter(and_(*filter)).update(blueprint)
+        except Exception as e:    
+            data = session.query(table).update(blueprint)
         session.commit()
     except Exception as e:
         session.rollback()
         return str(e), 400
     finally:
         session.close()
-    return jsonify(ids), 200
+    return jsonify(data), 200
 
 
 
