@@ -12,7 +12,6 @@ app = Flask(__name__)
 
 
 #! Populate db with itemValue.py here
-dbcontext.clear_database()
 with dbcontext.get_session() as S:
     def add_all_items():
         S.add_all([
