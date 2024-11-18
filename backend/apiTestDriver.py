@@ -187,8 +187,8 @@ def create_item_incomplete_blueprint():
         "manufacturer": "Bootlegs R Me",
         "num_players": [2, 6],
         "min_age": 6,
+        "price": 51,
         "genre": "Cards",
-        "collectible": False
     }
     try:
         response = requests.post(base_url+endpoint, json=blueprint)
