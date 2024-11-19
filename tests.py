@@ -674,5 +674,3 @@ if __name__ == "__main__":
     update_item_id_1_discount_40()
     update_items_collectible_figure_price_175_discount_50()
     get_update_manufacturers()
-
-
