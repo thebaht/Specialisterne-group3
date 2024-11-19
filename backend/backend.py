@@ -1,3 +1,4 @@
+import sys
 from dbcontext import *
 from factory import Factory
 from sqlalchemy import update, and_
@@ -12,24 +13,31 @@ app = Flask(__name__)
 
 
 #! Populate db with itemValue.py here
-with dbcontext.get_session() as S:
-    def add_all_items():
-        S.add_all([
-            *itemValue.create_boardGames(S),
-            *itemValue.create_collectibleFigures(S),
-            *itemValue.create_tabletopFigures(S),
-        ])
+def populateDB():
+    print("Populating database")
+    with dbcontext.get_session() as S:
+        def add_all_items():
+            items = [
+                *itemValue.create_boardGames(S),
+                *itemValue.create_collectibleFigures(S),
+                *itemValue.create_tabletopFigures(S),
+            ]
+            print(f"    Added {len(items)} items")
+            S.add_all(items)
+        def add_references():
+            refs = [
+                *itemValue.create_genre(),
+                *itemValue.create_manufacturers(),
+                *itemValue.create_characters(),
+            ]
+            print(f"    Added {len(refs)} references")
+            S.add_all(refs)
+        add_references()
+        add_all_items()
         S.commit()
-    def add_references():
-        S.add_all([
-            *itemValue.create_genre(),
-            *itemValue.create_manufacturers(),
-            *itemValue.create_characters(),
-        ])
-        S.commit()
-    add_references()
-    add_all_items()
 #! ..................................
+
+
 
 def serialize_model(obj: Base):
     return {c.key: getattr(obj, c.key) for c in inspect(obj).mapper.column_attrs if not isinstance(getattr(obj, c.key), Base)}
@@ -51,7 +59,7 @@ def get_items(table_name):
         session.rollback()
         return str(e), 400
     finally:
-        session.commit()
+        _commit(session)
         session.close()
     return jsonify(data), 200
 
@@ -67,7 +75,7 @@ def get_item(table_name, id):
         session.rollback()
         return str(e), 400
     finally:
-        session.commit()
+        _commit(session)
         session.close()
     return jsonify(data), 200
 
@@ -87,7 +95,7 @@ def create_item():
         session.rollback()
         return str(e), 400
     finally:
-        session.commit()
+        _commit(session)
         session.close()
     return jsonify(data), 200
 
@@ -108,7 +116,7 @@ def update_item(table_name, id):
         session.rollback()
         return str(e), 400
     finally:
-        session.commit()
+        _commit(session)
         session.close()
     return jsonify(id), 200
 
@@ -132,7 +140,7 @@ def update_items(table_name):
         session.rollback()
         return str(e), 400
     finally:
-        session.commit()
+        _commit(session)
         session.close()
     return jsonify(data), 200
 
@@ -149,8 +157,23 @@ def remove_item(id):
         session.rollback()
         return str(e), 400
     finally:
-        session.commit()
+        _commit(session)
         session.close()
     return "deleted", 200
 
 
+TESTMODE = False
+def _commit(session:Session):
+    """Wrapper function for session.commit.\n
+    Ignores commits if in TESTMODE"""
+    #if not session.is_active: return
+    if TESTMODE:
+        #session.rollback()
+        pass
+    else:
+        session.commit()
+if __name__ == "__main__":
+    TESTMODE = "testmode" in sys.argv
+    populateDB()
+    app.run()
+    print(TESTMODE)

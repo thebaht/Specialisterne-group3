@@ -208,9 +208,9 @@ def test_create_item_incomplete_blueprint():
     
 # ...........................................................................   
     
-def remove_item_id_17():
+def remove_item_id_16():
     print(f"\n{"_"*25}\nremove_item_id_17_test()\n")
-    id = 17
+    id = 16
     endpoint = f"/api/item/{id}"
     try:
         response = requests.delete(base_url+endpoint)
@@ -224,8 +224,9 @@ def remove_item_id_17():
     print("_"*100)
     return response
 
-def test_remove_item_id_17():
-    response = remove_item_id_17()
+def test_remove_item_id_16():
+    response = remove_item_id_16()
+    print(response,'-'*50)
     assert response.text == "deleted"
     
 # ...........................................................................   
@@ -370,7 +371,7 @@ if __name__ == "__main__":
     print(create_item_cardgame())
     print(create_item_empty_blueprint())
     print(create_item_incomplete_blueprint())
-    print(remove_item_id_17())
+    print(remove_item_id_16())
     print(remove_item_id_out_of_range())
     print(update_item_id_1_discount_40())
     print(update_items_boardgame_price_175_discount_50())
