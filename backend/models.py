@@ -30,7 +30,7 @@ class Item(Base):
     manufacturer: Mapped["Manufacturer"] = relationship(back_populates="items")
     name: Mapped[str] = mapped_column(String(30))
     description: Mapped[str] = mapped_column(String(100))
-    quantity: Mapped[int]
+    quantity: Mapped[int] = mapped_column(default=0)
     price: Mapped[float]
     discount: Mapped[Optional[float]]
 
@@ -38,6 +38,9 @@ class Item(Base):
         "polymorphic_identity": "item",
         "polymorphic_on": "type",
     }
+
+    def __convert_alias_arguments__(args: dict):
+        pass
 
 
 class Genre(Base):
@@ -61,6 +64,17 @@ class Game(Item):
     __mapper_args__ = {
         "polymorphic_identity": "game",
     }
+
+    def __convert_alias_arguments__(args: dict):
+        Game.__base__.__convert_alias_arguments__(args)
+
+        if "num_players" in args:
+            min, max = args["num_players"]
+            del args["num_players"]
+            args.update({
+                "num_players_min": min,
+                "num_players_max": max,
+            })
 
 
 class BoardGame(Game):
@@ -105,6 +119,18 @@ class Figure(Item):
     __mapper_args__ = {
         "polymorphic_identity": "figure",
     }
+
+    def __convert_alias_arguments__(args: dict):
+        Figure.__base__.__convert_alias_arguments__(args)
+
+        if "dimensions" in args:
+            length, width, height = args["dimensions"]
+            del args["dimensions"]
+            args.update({
+                "length": length,
+                "width": width,
+                "height": height,
+            })
 
 
 class TabletopFigure(Figure):
@@ -169,6 +195,7 @@ class Supply(Item):
         "polymorphic_identity": "supply",
     }
 
+
 @dataclass
 class TableColumn:
     inst: Column
@@ -186,7 +213,11 @@ class Table:
     table: str
     columns: List[TableColumn]
 
-    def get_column(self, name: str):
+    def matches_name(self, name: str) -> bool:
+        lower = name.lower()
+        return self.name.lower() == lower or self.table.lower() == lower
+
+    def get_column(self, name: str) -> Optional[TableColumn]:
         return next(filter(lambda c: c.name == name or c.mapper == name, self.columns), None)
 
 def find_table(tables: List[Table], name: str) -> Optional[Table]:
@@ -195,6 +226,7 @@ def find_table(tables: List[Table], name: str) -> Optional[Table]:
             return table
 
     return None
+
 
 def __get_tables__() -> List[Table]:
     import sys, inspect as py_inspect
@@ -233,17 +265,14 @@ def __get_tables__() -> List[Table]:
             cls.__tablename__,
             columns,
         ))
-        
+
     return tables
 
 TABLES = __get_tables__()
 
-def TABLES_GET(name: str):
-    def matches_table(table: Table, name: str):
-        lower = name.lower()
-        return table.name.lower() == lower or table.table.lower() == lower
+def TABLES_GET(name: str) -> Optional[Table]:
+    return next(filter(lambda t: t.matches_name(name), TABLES), None)
 
-    return next(filter(lambda t: matches_table(t, name), TABLES), None)
 
 def __is_item_family_leaf__(cls) -> List[Table]:
     # check if cls is a subclass of Item
@@ -269,6 +298,7 @@ def __is_item_family_leaf__(cls) -> List[Table]:
     return True
 
 ITEMS = [table for table in TABLES if __is_item_family_leaf__(table.cls)]
+
 
 if __name__ == '__main__':
     # simpel test
