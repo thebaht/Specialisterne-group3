@@ -12,7 +12,6 @@ class Base(DeclarativeBase):
 # https://docs.sqlalchemy.org/en/20/orm/inheritance.html#joined-table-inheritance
 
 
-
 class Manufacturer(Base):
     __tablename__ = "manufacturer"
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -39,6 +38,7 @@ class Item(Base):
         "polymorphic_on": "type",
     }
 
+    # let tables programatically have their own aliases for columns by modifying passed arguments
     def __convert_alias_arguments__(args: dict):
         pass
 
@@ -198,20 +198,20 @@ class Supply(Item):
 
 @dataclass
 class TableColumn:
-    inst: Column
-    name: str
-    type: object
-    optional: bool
+    inst: Column  # instance of Column class
+    name: str  # column name
+    type: object  # python type
+    optional: bool  # nullable
     primary_key: bool
     foreign_keys: Set[ForeignKey]
-    mapper: Optional[str]
+    mapper: Optional[str]  # class field name that maps to this column
 
 @dataclass
 class Table:
-    cls: Base
-    name: str
-    table: str
-    columns: List[TableColumn]
+    cls: Base  # class
+    name: str  # class name
+    table: str  # table name
+    columns: List[TableColumn]  # database columns
 
     def matches_name(self, name: str) -> bool:
         lower = name.lower()
@@ -220,22 +220,18 @@ class Table:
     def get_column(self, name: str) -> Optional[TableColumn]:
         return next(filter(lambda c: c.name == name or c.mapper == name, self.columns), None)
 
-def find_table(tables: List[Table], name: str) -> Optional[Table]:
-    for table in tables:
-        if name.lower() == table.name.lower() or name.lower() == table.table.lower():
-            return table
 
-    return None
-
-
+# generate list of Table's from module definitions
 def __get_tables__() -> List[Table]:
     import sys, inspect as py_inspect
     from sqlalchemy.inspection import inspect as sa_inspect
 
+    # get module table classes
     classes = [cls for _, cls in py_inspect.getmembers(sys.modules[__name__]) if hasattr(cls, '__table__')]
 
     tables = []
     for cls in classes:
+        # generate list of TableColumn's by inspecting the table class
         columns = (attrs.columns[0] for attrs in sa_inspect(cls).mapper.column_attrs)
         columns = [
             TableColumn(
@@ -245,20 +241,26 @@ def __get_tables__() -> List[Table]:
                 column.nullable,
                 column.primary_key,
                 column.foreign_keys,
-                None,
+                None,  # potentially set in next part
             )
             for column in columns
         ]
 
-        # associate relationship fields with columns
+        # a mapper is a class field refers to another table using a foreign key in its own list of columns or the other table's columns
+        # get dict of mappers that aren't hidden (doesn't start with _)
         mappers = {attr: getattr(cls, attr).mapper for attr in dir(cls) if not attr.startswith('_') and hasattr(getattr(cls, attr), 'mapper')}
         for field, mapper in mappers.items():
+            # a mapper relationship is an SQL expression. by default it's an equals expression (e.g. other_table.id = table.other_id).
             for relationship in mapper.relationships:
+                # get column on right hand side of relationship expression
                 *_, mapper_column = relationship.primaryjoin.get_children()
+
+                # find the column in the column list and assign the mapper name to the column mapper field
                 column = next(filter(lambda column: column.name == mapper_column.name, columns), None)
                 if column:
                     column.mapper = field
 
+        # push table to list
         tables.append(Table(
             cls,
             cls.__name__,
@@ -268,13 +270,15 @@ def __get_tables__() -> List[Table]:
 
     return tables
 
+# list of tables in module
 TABLES = __get_tables__()
 
+# easy table lookup with table names
 def TABLES_GET(name: str) -> Optional[Table]:
     return next(filter(lambda t: t.matches_name(name), TABLES), None)
 
-
-def __is_item_family_leaf__(cls) -> List[Table]:
+# check if table inherits from Item and isn't inherited from
+def __is_item_family_leaf__(cls) -> bool:
     # check if cls is a subclass of Item
     is_item = False
     base = cls
@@ -297,85 +301,9 @@ def __is_item_family_leaf__(cls) -> List[Table]:
 
     return True
 
+# list of tables in module that are items, but aren't inherited from
 ITEMS = [table for table in TABLES if __is_item_family_leaf__(table.cls)]
 
-
 if __name__ == '__main__':
-    # simpel test
-    man = Manufacturer(name="games workshop")
-
-    fig = TabletopFigure(
-        name="space marine",
-        description="little space men",
-        quantity=500,
-        price=200.0,
-        discount=0.0,
-        length=1.0,
-        width=2.0,
-        height=3.0,
-    )
-
-    man.items.append(fig)
-
     from pprint import pp as pprint
-
-    pprint(ITEMS)
-    # print(ITEMS[0].cls.__name__)
-    # fig = next(filter(lambda i: i.cls == Figure, TABLES))
-    # key = next(iter(fig.columns[8].foreign_keys))
-    # pprint(dir(key.column))
-    # char = next(filter(lambda i: i.cls == Character, TABLES))
-    # pprint(char.columns[0].inst)
-    # print(key.column.table.name, char.columns[0].inst.table.name)
-    # print(key.column.name, char.columns[0].inst.name)
-
-   # cls = Figure
-    # idx = 1
-    # # print(dir(cls.__table__.columns[idx]))
-    # print(cls.__table__.columns)
-    # print(cls.__table__.columns[idx].name)
-    # print(cls.__table__.columns[idx].type.python_type)
-    # print(cls.__table__.columns[idx].nullable)
-    # print(cls.__table__.columns[idx].primary_key)
-    # print(cls.__table__.columns[idx].foreign_keys)
-    # for key in cls.__table__.foreign_keys:
-    #     print(key.parent.primary_key, key.column.table)
-
-    # table = next(iter(cls.__table__.columns[idx].foreign_keys)).column.table
-    # print(dir(table))
-    # print(table)
-    # column = Figure.__table__.columns[0]
-    # print(column)
-    # print(dir(column))
-    # print(field.nullable)
-    # print(man)
-    # print([(t, type(getattr(man, t))) for t in dir(man)])
-
-    # field = Figure.character
-    # print(dir(field))
-    # print(field)
-
-    # map = field.mapper
-    # print(dir(map))
-    # print(map)
-    # print(type(map))
-    # print(map.entity)
-    # print(map.columns)
-    
-    # prop = field.property
-    # print(dir(prop))
-    # print(prop)
-    # print(type(prop))
-    # print(prop.setup)
-
-    # print(dir(map))
-    # print(type(map))
-    # print(map.__mro_entries__(None)[0])
-    # import typing
-    # arg = typing.get_args(map)[0]
-    # print(arg)
-    # print(arg.__forward_arg__)
-    # print(dir(arg))
-
-    # print(ITEMS)
-
+    pprint(TABLES)
