@@ -241,12 +241,13 @@ def _commit(session:Session):
     Ignores commits if in TESTMODE"""
     #if not session.is_active: return
     if TESTMODE:
-        #session.rollback()
+        session.rollback()
         pass
     else:
         session.commit()
+        
 if __name__ == "__main__":
     TESTMODE = "testmode" in sys.argv
+    print(f"Testmode: {"Enabled" if TESTMODE else "Disabled"}")
     populateDB()
     app.run()
-    print(TESTMODE)

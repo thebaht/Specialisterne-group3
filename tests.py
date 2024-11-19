@@ -11,7 +11,7 @@ def get_items_no_filter():
     Fetches all items from the API without supplying a filter in the request body.
     Should return all items in the table.
     """
-    print(f"\n{"_"*25}\nget_items_no_filter_test()\n")
+    print(f"\nget_items_no_filter_test()\n")
     table = "item" # Set the table name for the request
     endpoint = f"/api/items/{table}" # Define the API endpoint to get items of the specified table
     try:
@@ -41,7 +41,7 @@ def get_items_empty_filter():
     Fetches all items from the API with an empty filter.
     Should return all items in the table.
     """
-    print(f"\n{"_"*25}\nget_items_empty_filter_test()\n")
+    print(f"\nget_items_empty_filter_test()\n")
     table = "item" # Set the table name for the request
     endpoint = f"/api/items/{table}" # Define the API endpoint to get items of the specified table
     filter = {   } # Empty filter to fetch all items
@@ -71,7 +71,7 @@ def get_items_price_50():
     """
     Fetches all items from the API with a filter to only include items priced at 50.
     """
-    print(f"\n{"_"*25}\nget_items_price_50_test()\n")
+    print(f"\nget_items_price_50_test()\n")
     table = "item" # Set the table name for the request
     endpoint = f"/api/items/{table}" # Define the API endpoint to get items of the specified table
     filter = { # Set filter for items priced at 50
@@ -103,7 +103,7 @@ def get_item_id_1():
     """
     Fetches the item with ID 1 from the API.
     """
-    print(f"\n{"_"*25}\nget_item_id_1_test()\n")
+    print(f"\nget_item_id_1_test()\n")
     id = 1  # Set the ID of the item to fetch
     table = "item" # Set the table name for the request
     endpoint = f"/api/item/{table}/{id}" # Define the endpoint with the specific table and item ID
@@ -134,7 +134,7 @@ def get_item_id_out_of_range():
     Fetches an item with an ID that does not exist in the database.
     This should fail.
     """
-    print(f"\n{"_"*25}\nget_item_id_out_of_range_test()\n")
+    print(f"\nget_item_id_out_of_range_test()\n")
     id = 99 # Set an ID that is out of range
     table = "item" # Set the table name for the request
     endpoint = f"/api/item/{table}/{id}" # Define the endpoint with the specific table and item ID
@@ -164,7 +164,7 @@ def create_item_cardgame():
     """
     Creates a new card game item using the API.
     """
-    print(f"\n{"_"*25}\ncreate_item_cardgame_test()\n")
+    print(f"\ncreate_item_cardgame_test()\n")
     endpoint = f"/api/item" # Define the endpoint to create an item
     blueprint = { # Define the item data
         "item_type": "cardgame",
@@ -199,12 +199,211 @@ def test_create_item_cardgame():
 
 # ...........................................................................
 
+def create_item_nonexistent_item_type():
+    """
+    Creates a new card game item with a nonexistent item_type.
+    This should fail.
+    """
+    print(f"\ncreate_item_nonexistent_item_type()\n")
+    endpoint = f"/api/item" # Define the endpoint to create an item
+    blueprint = { # Define the item data with a nonexistent item_type
+        "item_type": "a card game",
+        "name": "Plain deck",
+        "description": "52 cards",
+        "price": 51,
+        "manufacturer": "Bootlegs R Me",
+        "num_players": [2, 6],
+        "min_age": 6,
+        "genre": "Cards",
+        "collectible": False
+    }
+    try:
+        response = requests.post(base_url+endpoint, json=blueprint) # Send POST request to create the item
+        if response.status_code == 200: # If the response is successful
+            print("data:\n", json.dumps(response.json(), indent=2)) # Print the formatted response data
+        else: # if the response is not succesful, print the returned status code and information
+            print(f"Failed to fetch items. Status Code: {response.status_code}")
+            print("Error Message:", response.text)
+    except Exception as e:
+        return e  # Return the exception if an error occurs
+    print(response)
+    print("_"*100)
+    return response # Return the response object
+
+def test_create_item_nonexistent_item_type():
+    """
+    Tests the `create_item_nonexistent_item_type` function.
+    """
+    response = create_item_nonexistent_item_type()  # Call the function to create a cardgame item
+    assert response.status_code == 400 # Assert that the response returns a 400 error
+
+# ...........................................................................
+
+def create_item_without_item_type():
+    """
+    Creates a new card game item with a without item_type.
+    This should fail.
+    """
+    print(f"\ncreate_item_without_item_type()\n")
+    endpoint = f"/api/item" # Define the endpoint to create an item
+    blueprint = { # Define the item data with a without item_type
+        "name": "Plain deck",
+        "description": "52 cards",
+        "price": 51,
+        "manufacturer": "Bootlegs R Me",
+        "num_players": [2, 6],
+        "min_age": 6,
+        "genre": "Cards",
+        "collectible": False
+    }
+    try:
+        response = requests.post(base_url+endpoint, json=blueprint) # Send POST request to create the item
+        if response.status_code == 200: # If the response is successful
+            print("data:\n", json.dumps(response.json(), indent=2)) # Print the formatted response data
+        else: # if the response is not succesful, print the returned status code and information
+            print(f"Failed to fetch items. Status Code: {response.status_code}")
+            print("Error Message:", response.text)
+    except Exception as e:
+        return e  # Return the exception if an error occurs
+    print(response)
+    print("_"*100)
+    return response # Return the response object
+
+def test_create_item_without_item_type():
+    """
+    Tests the `create_item_without_item_type` function.
+    """
+    response = create_item_without_item_type()  # Call the function to create a cardgame item
+    assert response.status_code == 400 # Assert that the response returns a 400 error
+
+# ...........................................................................
+
+def create_item_too_many_attributes():
+    """
+    Creates a new card game item with too many attributes.
+    This should fail.
+    """
+    print(f"\ncreate_item_too_many_attributes()\n")
+    endpoint = f"/api/item" # Define the endpoint to create an item
+    blueprint = { # Define the item data with too many attributes
+        "item_type": "cardgame",
+        "name": "Plain deck",
+        "description": "52 cards",
+        "price": 51,
+        "manufacturer": "Bootlegs R Me",
+        "num_players": [2, 6],
+        "min_age": 6,
+        "genre": "Cards",
+        "collectible": False,
+        "extra": "hehe"
+    }
+    try:
+        response = requests.post(base_url+endpoint, json=blueprint) # Send POST request to create the item
+        if response.status_code == 200: # If the response is successful
+            print("data:\n", json.dumps(response.json(), indent=2)) # Print the formatted response data
+        else: # if the response is not succesful, print the returned status code and information
+            print(f"Failed to fetch items. Status Code: {response.status_code}")
+            print("Error Message:", response.text)
+    except Exception as e:
+        return e  # Return the exception if an error occurs
+    print(response)
+    print("_"*100)
+    return response # Return the response object
+
+def test_create_item_too_many_attributes():
+    """
+    Tests the `create_item_too_many_attributes` function.
+    """
+    response = create_item_too_many_attributes()  # Call the function to create a cardgame item
+    assert response.status_code == 400 # Assert that the response returns a 400 error
+
+# ...........................................................................
+
+def create_item_incorrect_attribute_type():
+    """
+    Creates a new card game item with an attribute of incorrect type.
+    This should fail.
+    """
+    print(f"\ncreate_item_incorrect_attribute_type()\n")
+    endpoint = f"/api/item" # Define the endpoint to create an item
+    blueprint = { # Define the item data with too many attributes
+        "item_type": "cardgame",
+        "name": "Plain deck",
+        "description": "52 cards",
+        "price": "51",
+        "manufacturer": "Bootlegs R Me",
+        "num_players": [2, 6],
+        "min_age": 6,
+        "genre": "Cards",
+        "collectible": False
+    }
+    try:
+        response = requests.post(base_url+endpoint, json=blueprint) # Send POST request to create the item
+        if response.status_code == 200: # If the response is successful
+            print("data:\n", json.dumps(response.json(), indent=2)) # Print the formatted response data
+        else: # if the response is not succesful, print the returned status code and information
+            print(f"Failed to fetch items. Status Code: {response.status_code}")
+            print("Error Message:", response.text)
+    except Exception as e:
+        return e  # Return the exception if an error occurs
+    print(response)
+    print("_"*100)
+    return response # Return the response object
+
+def test_create_item_incorrect_attribute_type():
+    """
+    Tests the `create_item_incorrect_attribute_type` function.
+    """
+    response = create_item_incorrect_attribute_type()  # Call the function to create a cardgame item
+    assert response.status_code == 400 # Assert that the response returns a 400 error
+
+# ...........................................................................
+def create_item_nonexistent_reference():
+    """
+    Creates a new card game item with an nonexistent manufacturer reference.
+    This should fail.
+    """
+    print(f"\ncreate_item_nonexistent_reference()\n")
+    endpoint = f"/api/item" # Define the endpoint to create an item
+    blueprint = { # Define the item data with nonexistent manufacturer reference
+        "item_type": "cardgame",
+        "name": "Plain deck",
+        "description": "52 cards",
+        "price": 51,
+        "manufacturer": "iMakeStuff.com",
+        "num_players": [2, 6],
+        "min_age": 6,
+        "genre": "Cards",
+        "collectible": False
+    }
+    try:
+        response = requests.post(base_url+endpoint, json=blueprint) # Send POST request to create the item
+        if response.status_code == 200: # If the response is successful
+            print("data:\n", json.dumps(response.json(), indent=2)) # Print the formatted response data
+        else: # if the response is not succesful, print the returned status code and information
+            print(f"Failed to fetch items. Status Code: {response.status_code}")
+            print("Error Message:", response.text)
+    except Exception as e:
+        return e  # Return the exception if an error occurs
+    print(response)
+    print("_"*100)
+    return response # Return the response object
+
+def test_create_item_nonexistent_reference():
+    """
+    Tests the `create_item_nonexistent_reference` function.
+    """
+    response = create_item_nonexistent_reference()  # Call the function to create a cardgame item
+    assert response.status_code == 400 # Assert that the response returns a 400 error
+
+# ...........................................................................
+
 def create_item_empty_blueprint():
     """
     Attempts to create an item with an empty blueprint.
     This should fail.
     """
-    print(f"\n{"_"*25}\ncreate_item_empty_blueprint_test()\n")
+    print(f"\ncreate_item_empty_blueprint_test()\n")
     endpoint = f"/api/item" # Define the endpoint to create an item
     blueprint = {   } # Empty blueprint for item data
     try:
@@ -235,7 +434,7 @@ def create_item_incomplete_blueprint():
     Attempts to create an item with an incomplete blueprint.
     This should fail.
     """
-    print(f"\n{"_"*25}\ncreate_item_incomplete_blueprint_test()\n")
+    print(f"\ncreate_item_incomplete_blueprint_test()\n")
     endpoint = f"/api/item" # Define the endpoint to create an item
     blueprint = {  # Define the item data with collectible attribute missing.
         "item_type": "cardgame",
@@ -273,7 +472,7 @@ def remove_item_id_16():
     """
     Attempts to remove an item with ID 16 from the database.
     """
-    print(f"\n{"_"*25}\nremove_item_id_16_test()\n")
+    print(f"\nremove_item_id_16_test()\n")
     id = 16  # Set an ID to delete
     table = "item" # Set the table name for the request
     endpoint = f"/api/item/{table}/{id}" # Define the endpoint with the specific table and item ID
@@ -304,7 +503,7 @@ def remove_item_id_out_of_range():
     Attempts to remove an item with an ID that does not exist in the database.
     This should fail.
     """
-    print(f"\n{"_"*25}\nremove_item_id_out_of_range_test()\n")
+    print(f"\nremove_item_id_out_of_range_test()\n")
     id = 99 # Set an ID that is out of range
     table = "item" # Set the table name for the request
     endpoint = f"/api/item/{table}/{id}" # Define the endpoint with the specific table and item ID
@@ -334,7 +533,7 @@ def update_item_id_1_discount_40():
     """
     Attempts to update the discount of the item with ID 1 in the database.
     """
-    print(f"\n{"_"*25}\nupdate_item() | id == 1, discount -> 40\n")
+    print(f"\nupdate_item() | id == 1, discount -> 40\n")
     id = 1  # Set the ID of the item to update
     table = "item" # Set the table name for the request
     endpoint = f"/api/item/{table}/{id}" # Define the endpoint with the specific table and item ID
@@ -367,7 +566,7 @@ def update_items_collectible_figure_price_175_discount_50():
     """
     Attempts to update the price and discount of collectible figures in the database.
     """
-    print(f"\n{"_"*25}\nupdate_item() | type == board_game, price -> 175, discount -> 2\n")
+    print(f"\nupdate_item() | type == board_game, price -> 175, discount -> 2\n")
     table = "item" # Set the table name for the request
     endpoint = f"/api/items/{table}" # Define the API endpoint to get items of the specified table
     filter = { # Set filter for collectible figures
@@ -407,7 +606,7 @@ def get_update_manufacturers():
     """
     Attempts to changed the manufacurer of marvel items to disney.
     """
-    print(f"\n{"_"*25}\nupdate manufacturers from marvel to disney\n")
+    print(f"\nupdate manufacturers from marvel to disney\n")
     table = "manufacturer" # Set the table name for the request
     endpoint = f"/api/items/{table}" # Define the API endpoint to get items of the specified table
     filter = {"name": "Marvel"} # Set filter for marvel
@@ -463,6 +662,11 @@ if __name__ == "__main__":
     get_item_id_1()
     get_item_id_out_of_range()
     create_item_cardgame()
+    create_item_nonexistent_item_type()
+    create_item_nonexistent_reference()
+    create_item_incorrect_attribute_type()
+    create_item_too_many_attributes()
+    create_item_without_item_type()
     create_item_empty_blueprint()
     create_item_incomplete_blueprint()
     remove_item_id_16()
