@@ -1,6 +1,4 @@
 from factory import Factory
-from models import Character
-# data which when fed into a factory, should produce an object
 
 
 def create_characters():

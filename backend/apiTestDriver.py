@@ -209,9 +209,10 @@ def test_create_item_incomplete_blueprint():
 # ...........................................................................   
     
 def remove_item_id_16():
-    print(f"\n{"_"*25}\nremove_item_id_17_test()\n")
+    print(f"\n{"_"*25}\nremove_item_id_16_test()\n")
     id = 16
-    endpoint = f"/api/item/{id}"
+    table = "item"
+    endpoint = f"/api/item/{table}/{id}"
     try:
         response = requests.delete(base_url+endpoint)
         if response.status_code == 200:
@@ -234,7 +235,8 @@ def test_remove_item_id_16():
 def remove_item_id_out_of_range():
     print(f"\n{"_"*25}\nremove_item_id_out_of_range_test()\n")
     id = 99
-    endpoint = f"/api/item/{id}"
+    table = "item"
+    endpoint = f"/api/item/{table}/{id}"
     try:
         response = requests.delete(base_url+endpoint)
         if response.status_code == 200:

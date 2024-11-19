@@ -1,41 +1,78 @@
+from typing import Any, List
+from dataclasses import dataclass
 import models
 import sqlalchemy as sql
 from sqlalchemy.orm import Session
 
 
+@dataclass
 class ItemNameException(Exception):
-    def __str__(self):
-        return f"No item or table with name \"{self.args[0]}\" exists"
+    name: str
 
+    def __str__(self):
+        return f"No item or table with name \"{self.name}\" exists"
+
+@dataclass
 class ItemKeyException(Exception):
-    def __str__(self):
-        return f"No column or mapping with name \"{self.args[1]}\" exists in table \"{self.args[0].table}\" or class \"{self.args[0].name}\""
+    table: models.Table
+    key: str
+    value: Any
 
+    def __str__(self):
+        return f"No column or mapping with name \"{self.key}\" exists in table \"{self.table.table}\" or class \"{self.table.name}\""
+
+@dataclass
 class ItemTypeException(Exception):
-    def __str__(self):
-        if self.args[1].name == self.args[2]:
-            return f"Invalid type \"{type(self.args[3]).__name__}\" given for column \"{self.args[1].name}\" with type \"{self.args[1].type.__name__}\" in table \"{self.args[0].table}\""
-        else:
-            return f"Invalid type \"{type(self.args[3]).__name__}\" given for mapping \"{self.args[1].mapper}\" in class \"{self.args[0].name}\""
+    table: models.Table
+    column: models.TableColumn
+    key: str
+    value: Any
 
+    def __str__(self):
+        if self.column.name == self.key:
+            return f"Invalid type \"{type(self.value).__name__}\" given for column \"{self.column.name}\" with type \"{self.column.type.__name__}\" in table \"{self.table.table}\""
+        else:
+            return f"Invalid type \"{type(self.value).__name__}\" given for mapping \"{self.column.mapper}\" in class \"{self.table.name}\""
+
+@dataclass
 class ItemReferenceException(Exception):
-    def __str__(self):
-        if isinstance(self.args[4], int):
-            return f"No row in table \"{self.args[1].table}\" with an ID of \"{self.args[4]}\""
-        else:
-            return f"No row in table \"{self.args[1].table}\" with the name \"{self.args[4]}\""
+    table: models.Table
+    foreign_table: models.Table
+    column: models.TableColumn
+    key: str
+    value: Any
 
-class ItemIncompleteException(Exception):
     def __str__(self):
-        string = f"Missing required column \"{self.args[1].name}\" in table \"{self.args[0].table}\""
-        if self.args[1].mapper:
-            string += f" or associated mapping \"{self.args[1].mapper}\" for class \"{self.args[0].name}\""
+        if isinstance(self.value, int):
+            return f"No row in table \"{self.foreign_table.table}\" with an ID of \"{self.value}\""
+        else:
+            return f"No row in table \"{self.foreign_table.table}\" with the name \"{self.value}\""
+
+@dataclass
+class ItemIncompleteException(Exception):
+    table: models.Table
+    columns: List[models.TableColumn]
+
+    def __format_column__(column: models.TableColumn) -> str:
+        string = f"\"{column.name}\""
+        if column.mapper:
+            string += f" (or associated mapping \"{column.mapper}\")"
 
         return string
 
-class ItemInitException(Exception):
     def __str__(self):
-        return f"Failed at creating an instance of class \"{self.args[0].name}\": {self.args[1]}"
+        string_columns = (ItemIncompleteException.__format_column__(column) for column in self.columns)
+        string = f"Missing required column{"s" if len(self.columns) > 1 else ""} {", ".join(string_columns)} in table \"{self.table.table}\""
+
+        return string
+
+@dataclass
+class ItemInitException(Exception):
+    table: models.Table
+    exception: Exception
+
+    def __str__(self):
+        return f"Failed at creating an instance of class \"{self.table.name}\": {self.exception}"
 
 
 class Factory:
@@ -131,8 +168,8 @@ class Factory:
             if column.name in required_columns.keys():
                 del required_columns[column.name]
 
-        for column in required_columns.values():
-            raise ItemIncompleteException(table, column)
+        if required_columns:
+            raise ItemIncompleteException(table, list(required_columns.values()))
 
         try:
             item = table.cls(**args)
