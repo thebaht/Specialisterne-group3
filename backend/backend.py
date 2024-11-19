@@ -16,7 +16,7 @@ app = Flask(__name__)           # Initialize a Flask app instance
 with dbcontext.get_session() as S: # Start a session with the database
     def add_references():
         """
-        Adds reference data (genres, manufacturers, characters) to the database.
+        Adds predefined reference data (genres, manufacturers, characters) to the database.
         """
         S.add_all([
             *db_seed.create_genre(),
