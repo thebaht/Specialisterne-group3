@@ -29,7 +29,7 @@ class ItemTypeException(Exception):
     value: Any
 
     def __str__(self):
-        if self.args[1].name == self.args[2]:
+        if self.column.name == self.key:
             return f"Invalid type \"{type(self.value).__name__}\" given for column \"{self.column.name}\" with type \"{self.column.type.__name__}\" in table \"{self.table.table}\""
         else:
             return f"Invalid type \"{type(self.value).__name__}\" given for mapping \"{self.column.mapper}\" in class \"{self.table.name}\""
