@@ -89,24 +89,7 @@ class Factory:
 
         del args["item_type"]
 
-        if issubclass(table.cls, models.Figure):
-            if "dimensions" in args:
-                length, width, height = args["dimensions"]
-                del args["dimensions"]
-                args.update({
-                    "length": length,
-                    "width": width,
-                    "height": height,
-                })
-
-        if issubclass(table.cls, models.Game):
-            if "num_players" in args:
-                min, max = args["num_players"]
-                del args["num_players"]
-                args.update({
-                    "num_players_min": min,
-                    "num_players_max": max,
-                })
+        table.cls.__convert_alias_arguments__(args)
 
         # filter out None values
         args = {k: v for k, v in args.items() if v is not None}

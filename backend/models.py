@@ -39,6 +39,9 @@ class Item(Base):
         "polymorphic_on": "type",
     }
 
+    def __convert_alias_arguments__(args: dict):
+        pass
+
 
 class Genre(Base):
     __tablename__ = "genre"
@@ -61,6 +64,17 @@ class Game(Item):
     __mapper_args__ = {
         "polymorphic_identity": "game",
     }
+
+    def __convert_alias_arguments__(args: dict):
+        Game.__base__.__convert_alias_arguments__(args)
+
+        if "num_players" in args:
+            min, max = args["num_players"]
+            del args["num_players"]
+            args.update({
+                "num_players_min": min,
+                "num_players_max": max,
+            })
 
 
 class BoardGame(Game):
@@ -105,6 +119,18 @@ class Figure(Item):
     __mapper_args__ = {
         "polymorphic_identity": "figure",
     }
+
+    def __convert_alias_arguments__(args: dict):
+        Figure.__base__.__convert_alias_arguments__(args)
+
+        if "dimensions" in args:
+            length, width, height = args["dimensions"]
+            del args["dimensions"]
+            args.update({
+                "length": length,
+                "width": width,
+                "height": height,
+            })
 
 
 class TabletopFigure(Figure):
@@ -169,6 +195,7 @@ class Supply(Item):
         "polymorphic_identity": "supply",
     }
 
+
 @dataclass
 class TableColumn:
     inst: Column
@@ -195,6 +222,7 @@ def find_table(tables: List[Table], name: str) -> Optional[Table]:
             return table
 
     return None
+
 
 def __get_tables__() -> List[Table]:
     import sys, inspect as py_inspect
@@ -233,7 +261,7 @@ def __get_tables__() -> List[Table]:
             cls.__tablename__,
             columns,
         ))
-        
+
     return tables
 
 TABLES = __get_tables__()
@@ -269,6 +297,7 @@ def __is_item_family_leaf__(cls) -> List[Table]:
     return True
 
 ITEMS = [table for table in TABLES if __is_item_family_leaf__(table.cls)]
+
 
 if __name__ == '__main__':
     # simpel test
