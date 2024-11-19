@@ -24,7 +24,7 @@ class ItemReferenceException(Exception):
             return f"No row in table \"{self.args[1].table}\" with an ID of \"{self.args[4]}\""
         else:
             return f"No row in table \"{self.args[1].table}\" with the name \"{self.args[4]}\""
-         
+
 class ItemIncompleteException(Exception):
     def __str__(self):
         string = f"Missing required column \"{self.args[1].name}\" in table \"{self.args[0].table}\""
@@ -54,10 +54,6 @@ class Factory:
     def create_supply_type(name: str, usage_description: str) -> models.SupplyType:
         return models.SupplyType(name=name, usage_description=usage_description)
 
-    # Create from dict
-    def create_item_from_dict(session, dictArg):
-        return Factory.create_item(session, **dictArg)
-
     def create_item(
         session: Session,
         item_type: str,
@@ -65,19 +61,11 @@ class Factory:
         manufacturer: models.Manufacturer | str | int,
         description: str,
         price: float,
-        quantity: int=1,
+        quantity: int=0,
         **kwargs,
-    ):
-        try:
-            def matches_item(item: models.Table, name):
-                lower = name.lower()
-                return item.name.lower() == lower or item.table.lower() == lower
-
-            table = next((item for item in models.ITEMS if matches_item(item, item_type)))
-        except StopIteration:
-            raise ItemNameException(item_type)
-
+    ) -> models.Item:
         kwargs.update({
+            "item_type": item_type,
             "manufacturer": manufacturer,
             "name": name,
             "description": description,
@@ -86,33 +74,48 @@ class Factory:
             "discount": 0.0,
         })
 
+        return Factory.create_item_from_dict(session, kwargs)
+
+    # Create from dict
+    def create_item_from_dict(session: Session, args: dict) -> models.Item:
+        try:
+            def matches_item(item: models.Table, name):
+                lower = name.lower()
+                return item.name.lower() == lower or item.table.lower() == lower
+
+            table = next((item for item in models.ITEMS if matches_item(item, args["item_type"])))
+        except StopIteration:
+            raise ItemNameException(args["item_type"])
+
+        del args["item_type"]
+
         if issubclass(table.cls, models.Figure):
-            if "dimensions" in kwargs:
-                length, width, height = kwargs["dimensions"]
-                del kwargs["dimensions"]
-                kwargs.update({
+            if "dimensions" in args:
+                length, width, height = args["dimensions"]
+                del args["dimensions"]
+                args.update({
                     "length": length,
                     "width": width,
                     "height": height,
                 })
 
         if issubclass(table.cls, models.Game):
-            if "num_players" in kwargs:
-                min, max = kwargs["num_players"]
-                del kwargs["num_players"]
-                kwargs.update({
+            if "num_players" in args:
+                min, max = args["num_players"]
+                del args["num_players"]
+                args.update({
                     "num_players_min": min,
                     "num_players_max": max,
                 })
 
         # filter out None values
-        kwargs = {k: v for k, v in kwargs.items() if v is not None}
+        args = {k: v for k, v in args.items() if v is not None}
 
         def is_required_column(column: models.TableColumn):
             return column.name != 'type' and not column.optional and column.inst.default is None and not column.primary_key
         required_columns = {column.name: column for column in table.columns if is_required_column(column)}
 
-        for key, value in kwargs.items():
+        for key, value in args.items():
             column = table.get_column(key)
             if not column:
                 raise ItemKeyException(table, key, value)
@@ -127,7 +130,7 @@ class Factory:
 
             foreign_key = next(iter(column.foreign_keys))
             foreign_table = next(filter(lambda t: t.table == foreign_key.column.table.name, models.TABLES))
-            
+
             is_mapper = key == column.mapper
             if isinstance(value, int):
                 foreign_column = getattr(foreign_table.cls, 'id')
@@ -142,10 +145,10 @@ class Factory:
 
             stmt = sql.select(foreign_table.cls).where(foreign_column == value)
             if ref := session.scalars(stmt).one_or_none():
-                kwargs[key] = ref
+                args[key] = ref
             else:
                 raise ItemReferenceException(table, foreign_table, column, key, value)
-            
+
             if column.name in required_columns.keys():
                 del required_columns[column.name]
 
@@ -153,7 +156,7 @@ class Factory:
             raise ItemIncompleteException(table, column)
 
         try:
-            item = table.cls(**kwargs)
+            item = table.cls(**args)
         except Exception as e:
             raise ItemInitException(table, e)
 

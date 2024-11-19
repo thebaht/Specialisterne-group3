@@ -30,7 +30,7 @@ class Item(Base):
     manufacturer: Mapped["Manufacturer"] = relationship(back_populates="items")
     name: Mapped[str] = mapped_column(String(30))
     description: Mapped[str] = mapped_column(String(100))
-    quantity: Mapped[int]
+    quantity: Mapped[int] = mapped_column(default=0)
     price: Mapped[float]
     discount: Mapped[Optional[float]]
 
