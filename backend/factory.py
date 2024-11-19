@@ -79,11 +79,7 @@ class Factory:
     # Create from dict
     def create_item_from_dict(session: Session, args: dict) -> models.Item:
         try:
-            def matches_item(item: models.Table, name):
-                lower = name.lower()
-                return item.name.lower() == lower or item.table.lower() == lower
-
-            table = next((item for item in models.ITEMS if matches_item(item, args["item_type"])))
+            table = next((item for item in models.ITEMS if item.matches_name(args["item_type"])))
         except StopIteration:
             raise ItemNameException(args["item_type"])
 

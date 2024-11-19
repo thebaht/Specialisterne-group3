@@ -213,7 +213,11 @@ class Table:
     table: str
     columns: List[TableColumn]
 
-    def get_column(self, name: str):
+    def matches_name(self, name: str) -> bool:
+        lower = name.lower()
+        return self.name.lower() == lower or self.table.lower() == lower
+
+    def get_column(self, name: str) -> Optional[TableColumn]:
         return next(filter(lambda c: c.name == name or c.mapper == name, self.columns), None)
 
 def find_table(tables: List[Table], name: str) -> Optional[Table]:
@@ -266,12 +270,9 @@ def __get_tables__() -> List[Table]:
 
 TABLES = __get_tables__()
 
-def TABLES_GET(name: str):
-    def matches_table(table: Table, name: str):
-        lower = name.lower()
-        return table.name.lower() == lower or table.table.lower() == lower
+def TABLES_GET(name: str) -> Optional[Table]:
+    return next(filter(lambda t: t.matches_name(name), TABLES), None)
 
-    return next(filter(lambda t: matches_table(t, name), TABLES), None)
 
 def __is_item_family_leaf__(cls) -> List[Table]:
     # check if cls is a subclass of Item
