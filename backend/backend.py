@@ -27,7 +27,7 @@ def populateDB():
             print(f"    Added {len(items)} items")
             S.add_all(items)
         def add_references():
-            """Adds reference data (genres, manufacturers, characters) to the database."""
+            """Adds predefined reference data (genres, manufacturers, characters) to the database."""
             refs = [
                 *db_seed.create_genre(),
                 *db_seed.create_manufacturers(),
