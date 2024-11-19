@@ -192,6 +192,7 @@ class Factory:
         required_columns = {column.name: column for column in table.columns if is_required_column(column)}
 
         # go through each key-value argument to validate them and exhaust required columns
+        resolved_mappings = []
         for key, value in args.items():
             # get column by name or a potential assosicated mapper
             column = table.get_column(key)
@@ -230,15 +231,22 @@ class Factory:
             else:
                 raise ItemTypeException(table, column, key, value)
 
-            # do lookup in database
-            stmt = sql.select(foreign_table.cls).where(foreign_column == value)
-            if ref := session.scalars(stmt).one_or_none():
-                args[key] = ref
+            # do lookup in database for the referenced table id
+            stmt = sql.select(foreign_table.get_column("id").inst).where(foreign_column == value)
+            if id := session.scalars(stmt).one_or_none():
+                # add to list of resolved mappings if key is a mapping
+                if is_mapper:
+                    resolved_mappings.append((column.name, id, column.mapper))
             else:
                 raise ItemReferenceException(table, foreign_table, column, key, value)
 
             if column.name in required_columns.keys():
                 del required_columns[column.name]
+
+        # remove mapper from args and add the referenced foreign key name and id value
+        for column, id, mapper in resolved_mappings:
+            del args[mapper]
+            args[column] = id
 
         # check if there are any required columns left over
         if required_columns:
