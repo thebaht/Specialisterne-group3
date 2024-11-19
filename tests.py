@@ -12,20 +12,21 @@ def get_items_no_filter():
     Should return all items in the table.
     """
     print(f"\n{"_"*25}\nget_items_no_filter_test()\n")
-    table = "item" # Set the table name for the request 
-    endpoint = f"/api/items/{table}" # Define the API endpoint to get items of the specified table 
+    table = "item" # Set the table name for the request
+    endpoint = f"/api/items/{table}" # Define the API endpoint to get items of the specified table
     try:
-        response = requests.get(base_url+endpoint)  # Send GET request to the API       
-        if response.status_code == 200: # If the response is successful 
-            print("data:", json.dumps(response.json(), indent=2))  # Print the formatted response data 
-        else: # if the response is not succesful, print the returned status code and information 
-            print(f"Failed to fetch items. Status Code: {response.status_code}")  
+        response = requests.get(base_url+endpoint)  # Send GET request to the API
+        if response.status_code == 200: # If the response is successful
+            print("data:", json.dumps(response.json(), indent=2))  # Print the formatted response data
+        else: # if the response is not succesful, print the returned status code and information
+            print(f"Failed to fetch items. Status Code: {response.status_code}")
             print("Error Message:", response.text)
     except Exception as e:
-        return e  # Return the exception if an error occurs  
+        return e  # Return the exception if an error occurs
+    print(response)
     print("_"*100)
-    return response # Return the response object 
-        
+    return response # Return the response object
+
 def test_get_items_no_filter():
     """
     Tests the `get_items_no_filter` function.
@@ -37,7 +38,7 @@ def test_get_items_no_filter():
 
 def get_items_empty_filter():
     """
-    Fetches all items from the API with an empty filter. 
+    Fetches all items from the API with an empty filter.
     Should return all items in the table.
     """
     print(f"\n{"_"*25}\nget_items_empty_filter_test()\n")
@@ -53,18 +54,19 @@ def get_items_empty_filter():
             print("Error Message:", response.text)
     except Exception as e:
         return e  # Return the exception if an error occurs
+    print(response)
     print("_"*100)
     return response # Return the response object
-        
+
 def test_get_items_empty_filter():
     """
     Tests the `get_items_empty_filter` function.
     """
     response = get_items_empty_filter() # Call the function with an empty filter
     assert len(response.json()) == 16 # Assert that the response contains exactly 16 items
-    
+
 # ...........................................................................
-        
+
 def get_items_price_50():
     """
     Fetches all items from the API with a filter to only include items priced at 50.
@@ -84,9 +86,10 @@ def get_items_price_50():
             print("Error Message:", response.text)
     except Exception as e:
         return e  # Return the exception if an error occurs
+    print(response)
     print("_"*100)
     return response # Return the response object
-        
+
 def test_get_items_price_50():
     """
     Tests the `get_items_price_50` function.
@@ -103,16 +106,17 @@ def get_item_id_1():
     print(f"\n{"_"*25}\nget_item_id_1_test()\n")
     id = 1  # Set the ID of the item to fetch
     table = "item" # Set the table name for the request
-    endpoint = f"/api/item/{table}/{id}" # Define the endpoint with the specific table and item ID 
+    endpoint = f"/api/item/{table}/{id}" # Define the endpoint with the specific table and item ID
     try:
-        response = requests.get(base_url+endpoint)  # Send GET request    
+        response = requests.get(base_url+endpoint)  # Send GET request
         if response.status_code == 200: # If the response is successful
-            print("data:\n", json.dumps(response.json(), indent=2)) # Print the formatted response data 
+            print("data:\n", json.dumps(response.json(), indent=2)) # Print the formatted response data
         else: # if the response is not succesful, print the returned status code and information
             print(f"Failed to fetch items. Status Code: {response.status_code}")
             print("Error Message:", response.text)
     except Exception as e:
         return e  # Return the exception if an error occurs
+    print(response)
     print("_"*100)
     return response # Return the response object
 
@@ -135,7 +139,7 @@ def get_item_id_out_of_range():
     table = "item" # Set the table name for the request
     endpoint = f"/api/item/{table}/{id}" # Define the endpoint with the specific table and item ID
     try:
-        response = requests.get(base_url+endpoint)  # Send GET request 
+        response = requests.get(base_url+endpoint)  # Send GET request
         if response.status_code == 200: # If the response is successful
             print("data:\n", json.dumps(response.json(), indent=2)) # Print the formatted response data
         else: # if the response is not succesful, print the returned status code and information
@@ -143,6 +147,7 @@ def get_item_id_out_of_range():
             print("Error Message:", response.text)
     except Exception as e:
         return e  # Return the exception if an error occurs
+    print(response)
     print("_"*100)
     return response # Return the response object
 
@@ -152,15 +157,15 @@ def test_get_item_id_out_of_range():
     """
     response = get_item_id_out_of_range() # Call the function to fetch an out-of-range item
     assert response.status_code == 400  # Assert that the response returns a 400 error
- 
-# ...........................................................................   
+
+# ...........................................................................
 
 def create_item_cardgame():
     """
     Creates a new card game item using the API.
     """
     print(f"\n{"_"*25}\ncreate_item_cardgame_test()\n")
-    endpoint = f"/api/item" # Define the endpoint to create an item 
+    endpoint = f"/api/item" # Define the endpoint to create an item
     blueprint = { # Define the item data
         "item_type": "cardgame",
         "name": "Plain deck",
@@ -181,6 +186,7 @@ def create_item_cardgame():
             print("Error Message:", response.text)
     except Exception as e:
         return e  # Return the exception if an error occurs
+    print(response)
     print("_"*100)
     return response # Return the response object
 
@@ -190,8 +196,8 @@ def test_create_item_cardgame():
     """
     response = create_item_cardgame()  # Call the function to create a cardgame item
     assert response.json()["name"] == "Plain deck" # Assert that the item name matches
-    
-# ...........................................................................   
+
+# ...........................................................................
 
 def create_item_empty_blueprint():
     """
@@ -210,6 +216,7 @@ def create_item_empty_blueprint():
             print("Error Message:", response.text)
     except Exception as e:
         return e  # Return the exception if an error occurs
+    print(response)
     print("_"*100)
     return response # Return the response object
 
@@ -220,8 +227,8 @@ def test_create_item_empty_blueprint():
     response = create_item_empty_blueprint() # Call the function to create an item with empty blueprint
     assert response.status_code == 400  # Assert that the response returns a 400 error
 
-    
-# ...........................................................................   
+
+# ...........................................................................
 
 def create_item_incomplete_blueprint():
     """
@@ -249,6 +256,7 @@ def create_item_incomplete_blueprint():
             print("Error Message:", response.text)
     except Exception as e:
         return e  # Return the exception if an error occurs
+    print(response)
     print("_"*100)
     return response # Return the response object
 
@@ -258,9 +266,9 @@ def test_create_item_incomplete_blueprint():
     """
     response = create_item_incomplete_blueprint()  # Call the function to create an item with an incomplete blueprint
     assert response.status_code == 400 # Assert that the response returns a 400 error
-     
-# ...........................................................................   
-    
+
+# ...........................................................................
+
 def remove_item_id_16():
     """
     Attempts to remove an item with ID 16 from the database.
@@ -278,6 +286,7 @@ def remove_item_id_16():
             print("Error Message:", response.text)
     except Exception as e:
         return e  # Return the exception if an error occurs
+    print(response)
     print("_"*100)
     return response # Return the response object
 
@@ -287,8 +296,8 @@ def test_remove_item_id_16():
     """
     response = remove_item_id_16()  # Call the function to remove the item with ID 16 from the database.
     assert response.text == "deleted" # Assert that the response returns the message for sucess.
-    
-# ...........................................................................   
+
+# ...........................................................................
 
 def remove_item_id_out_of_range():
     """
@@ -308,6 +317,7 @@ def remove_item_id_out_of_range():
             print("Error Message:", response.text)
     except Exception as e:
         return e  # Return the exception if an error occurs
+    print(response)
     print("_"*100)
     return response # Return the response object
 
@@ -317,8 +327,8 @@ def test_remove_item_id_out_of_range():
     """
     response = remove_item_id_out_of_range()  # Call the function to remove the item with ID 99 from the database.
     assert response.status_code == 400 # Assert that the response returns a 400 error
-    
-# ...........................................................................   
+
+# ...........................................................................
 
 def update_item_id_1_discount_40():
     """
@@ -331,7 +341,7 @@ def update_item_id_1_discount_40():
     blueprint = { # Define the update data
         "discount": 40
     }
-    try: 
+    try:
         response = requests.put(base_url+endpoint, json=blueprint) # Send PUT request to update the item
         if response.status_code == 200: # If the response is successful
             print("data:\n", json.dumps(response.json(), indent=2)) # Print the formatted response data
@@ -340,6 +350,7 @@ def update_item_id_1_discount_40():
             print("Error Message:", response.text)
     except Exception as e:
         return e  # Return the exception if an error occurs
+    print(response)
     print("_"*100)
     return response # Return the response object
 
@@ -349,8 +360,8 @@ def test_update_item_id_1_discount_40():
     """
     response = update_item_id_1_discount_40()  # Call the function to update the item with ID 1 in the database.
     assert response.json() == 1 # Assert that the response returns ID 1
-    
-# ...........................................................................   
+
+# ...........................................................................
 
 def update_items_collectible_figure_price_175_discount_50():
     """
@@ -367,11 +378,11 @@ def update_items_collectible_figure_price_175_discount_50():
         "price": 175
     }
     args = { # combine the filter and update data into a single json
-        "blueprint": blueprint, 
+        "blueprint": blueprint,
         "filter": filter
     }
     try:
-        response = requests.put(base_url+endpoint, json=args) # Send PUT request with the filter and update data 
+        response = requests.put(base_url+endpoint, json=args) # Send PUT request with the filter and update data
         if response.status_code == 200: # If the response is successful
             print("data:\n", json.dumps(response.json(), indent=2)) # Print the formatted response data
         else: # if the response is not succesful, print the returned status code and information
@@ -379,6 +390,7 @@ def update_items_collectible_figure_price_175_discount_50():
             print("Error Message:", response.text)
     except Exception as e:
         return e  # Return the exception if an error occurs
+    print(response)
     print("_"*100)
     return response # Return the response object
 
@@ -388,8 +400,8 @@ def test_update_items_collectible_figure_price_175_discount_50():
     """
     response = update_items_collectible_figure_price_175_discount_50()  # Call the function to update the collectible figures
     assert response.json() == 8 # Assert that the response shows that 8 items were updated.
-    
-# ...........................................................................   
+
+# ...........................................................................
 
 def get_update_manufacturers():
     """
@@ -398,7 +410,7 @@ def get_update_manufacturers():
     print(f"\n{"_"*25}\nupdate manufacturers from marvel to disney\n")
     table = "manufacturer" # Set the table name for the request
     endpoint = f"/api/items/{table}" # Define the API endpoint to get items of the specified table
-    filter = {"name": "Marvel"} # Set filter for marvel 
+    filter = {"name": "Marvel"} # Set filter for marvel
     try:
         response = requests.get(base_url+endpoint,json=filter) # Send GET request with name filter
         if response.status_code == 200: # If the response is successful
@@ -408,7 +420,7 @@ def get_update_manufacturers():
             print("Error Message:", response.text)
     except Exception as e:
         return e  # Return the exception if an error occurs
-    filter = {"name": "disney"} # Set filter for disney 
+    filter = {"name": "disney"} # Set filter for disney
     try:
         response = requests.get(base_url+endpoint,json=filter) # Send GET request with name filter
         if response.status_code == 200: # If the response is successful
@@ -418,14 +430,14 @@ def get_update_manufacturers():
             print("Error Message:", response.text)
     except Exception as e:
         return e  # Return the exception if an error occurs
-    
+
     table = "item" # Set the table name for the request
     endpoint = f"/api/items/{table}" # Define the API endpoint to get items of the specified table
     filter = {"manufacturer_id": marvel_id}  # Set filter for items with marvels manufacturer_id
-    blueprint = {"manufacturer_id": disney_id} # Define update data 
+    blueprint = {"manufacturer_id": disney_id} # Define update data
     args = {"filter": filter, "blueprint": blueprint}  # combine the filter and update data into a single json
     try:
-        response = requests.put(base_url+endpoint,json=args) # Send PUT request with the filter and update data 
+        response = requests.put(base_url+endpoint,json=args) # Send PUT request with the filter and update data
         if response.status_code == 200: # If the response is successful
             print("data:", json.dumps(response.json(), indent=2))  # Print the formatted response data
         else: # if the response is not succesful, print the returned status code and information
@@ -445,18 +457,18 @@ def test_get_update_manufacturers():
 
 # runs and prints the results of all the functions.
 if __name__ == "__main__":
-    print(get_items_no_filter())
-    print(get_items_empty_filter())
-    print(get_items_price_50())
-    print(get_item_id_1())
-    print(get_item_id_out_of_range())
-    print(create_item_cardgame())
-    print(create_item_empty_blueprint())
-    print(create_item_incomplete_blueprint())
-    print(remove_item_id_16())
-    print(remove_item_id_out_of_range())
-    print(update_item_id_1_discount_40())
-    print(update_items_collectible_figure_price_175_discount_50())
-    print(get_update_manufacturers())
-    
+    get_items_no_filter()
+    get_items_empty_filter()
+    get_items_price_50()
+    get_item_id_1()
+    get_item_id_out_of_range()
+    create_item_cardgame()
+    create_item_empty_blueprint()
+    create_item_incomplete_blueprint()
+    remove_item_id_16()
+    remove_item_id_out_of_range()
+    update_item_id_1_discount_40()
+    update_items_collectible_figure_price_175_discount_50()
+    get_update_manufacturers()
+
 
