@@ -233,18 +233,17 @@ def remove_item(table_name, id):
     return "deleted", 200 # Return a success message
 
 
-TESTMODE = False
-def _commit(session:Session):
+TESTMODE = False    # test mode state
+def _commit(session:Session):   
     """Wrapper function for session.commit.\n
-    Ignores commits if in TESTMODE"""
-    #if not session.is_active: return
+    Ignores commits and rolls back changes if in TESTMODE"""
     if TESTMODE:
-        session.rollback()
+        session.rollback()  # roll back changes
     else:
-        session.commit()
+        session.commit()    # commit changes
         
 if __name__ == "__main__":
-    TESTMODE = "testmode" in sys.argv
+    TESTMODE = "testmode" in sys.argv   # testmode argument in terminal
     print(f"Testmode: {"Enabled" if TESTMODE else "Disabled"}")
-    populateDB()
-    app.run()
+    populateDB()    # populate db with example data
+    app.run()   # start flask app
