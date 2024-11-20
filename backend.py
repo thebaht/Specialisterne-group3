@@ -1,8 +1,8 @@
 import sys
 from dbcontext import *
 from factory import Factory
-from sqlalchemy import update, and_
-from flask import Blueprint, Flask, jsonify, request
+from sqlalchemy import and_
+from flask import Flask, jsonify, request
 from factory import *
 import db_seed
 from sqlalchemy.inspection import inspect
@@ -17,15 +17,6 @@ app = Flask(__name__)           # Initialize a Flask app instance
 def populateDB():
     print("Populating database")
     with dbcontext.get_session() as S:  # Start a session with the database
-        def add_all_items():
-            """Adds predefined items (board games, collectible figures, tabletop figures) to the database."""
-            items = [
-                *db_seed.create_boardGames(S),
-                *db_seed.create_collectibleFigures(S),
-                *db_seed.create_tabletopFigures(S),
-            ]
-            print(f"    Added {len(items)} items")
-            S.add_all(items)
         def add_references():
             """Adds predefined reference data (genres, manufacturers, characters) to the database."""
             refs = [
@@ -35,6 +26,15 @@ def populateDB():
             ]
             print(f"    Added {len(refs)} references")
             S.add_all(refs)
+        def add_all_items():
+            """Adds predefined items (board games, collectible figures, tabletop figures) to the database."""
+            items = [
+                *db_seed.create_boardGames(S),
+                *db_seed.create_collectibleFigures(S),
+                *db_seed.create_tabletopFigures(S),
+            ]
+            print(f"    Added {len(items)} items")
+            S.add_all(items)
         add_references()
         add_all_items()
         S.commit()  # Commit the changes to the database
@@ -79,7 +79,7 @@ def get_items(table_name):
             filter = request.json.items() # Extract filter criteria from the request body 
             filter = [getattr(table, key) == value for key, value in filter] # Reformat filter to use as arguments for query 
             data = session.query(table).filter(and_(*filter)).all() # Query the table with the filter 
-        except Exception:    
+        except Exception:
             data = session.query(table).all() # If no filter, fetch all rows from the table
         data = [serialize_model(obj) for obj in data] # Serialize the query results
     except Exception as e:
@@ -163,7 +163,7 @@ def update_item(table_name, id):
     table = models.TABLES_GET(table_name).cls # Get the table class from on its name
     try:
         blueprint = dict(request.json.items()) # Extract the update data from request body, and parse it into a dictionary
-        data = session.query(table).filter(table.id == id).update(blueprint) # Update the item with the update data
+        session.query(table).filter(table.id == id).update(blueprint) # Update the item with the update data
     except Exception as e:
         session.rollback() # Roll back changes if an error occurs
         return str(e), 400 # Return error message with 400 status code
@@ -192,6 +192,7 @@ def update_items(table_name):
     try:
         re = request.json
         blueprint = dict(re["blueprint"].items()) # Extract the update data from request body, and parse it into a dictionary
+        #TODO lav if statement
         try:
             filter = re["filter"].items() # Extract filter criteria from the request body 
             filter = [getattr(table, key) == value for key, value in filter] # Reformat filter to use as arguments for query
@@ -242,7 +243,6 @@ def _commit(session:Session):
     #if not session.is_active: return
     if TESTMODE:
         session.rollback()
-        pass
     else:
         session.commit()
         

@@ -246,9 +246,13 @@ def __get_tables__() -> List[Table]:
             for column in columns
         ]
 
-        # a mapper is a class field refers to another table using a foreign key in its own list of columns or the other table's columns
+        # a mapper is a class field that refers to another table using a foreign key in its own list of columns or the other table's columns
         # get dict of mappers that aren't hidden (doesn't start with _)
-        mappers = {attr: getattr(cls, attr).mapper for attr in dir(cls) if not attr.startswith('_') and hasattr(getattr(cls, attr), 'mapper')}
+        mappers = {
+            attr: getattr(cls, attr).mapper
+            for attr in dir(cls)
+            if not attr.startswith('_') and hasattr(getattr(cls, attr), 'mapper')
+        }
         for field, mapper in mappers.items():
             # a mapper relationship is an SQL expression. by default it's an equals expression (e.g. other_table.id = table.other_id).
             for relationship in mapper.relationships:
