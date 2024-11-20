@@ -45,7 +45,7 @@ HTTP API'en retunerer en statuskode på `200`, hvis andmodningen var succesfuld,
     - `RESPONSE`: Strengen `deleted`.
 
 ## Database struktur
-[ER diagram](ER.png)
+![ER diagram](ER.png)
 
 ## Filer
 - `dbinfo.py`: Database forbindelsesoplysninger
