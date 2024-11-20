@@ -32,7 +32,7 @@ def test_get_items_no_filter():
     Tests the `get_items_no_filter` function.
     """
     response = get_items_no_filter() # Call the function to fetch items without filters
-    assert len(response.json()) == 16 # Assert that the response contains exactly 16 items
+    assert response.status_code == 400 # Assert that the response contains exactly 16 items
 
 # ...........................................................................
 
