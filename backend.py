@@ -233,7 +233,12 @@ def remove_item(table_name, id):
     return "deleted", 200 # Return a success message
 
 
+@app.route('/api/istestmode')
+def is_test_mode():
+    return str(TESTMODE), 200
+
 TESTMODE = False    # test mode state
+
 def _commit(session:Session):   
     """Wrapper function for session.commit.\n
     Ignores commits and rolls back changes if in TESTMODE"""

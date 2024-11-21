@@ -23,7 +23,7 @@ def get_items_no_filter():
             print("Error Message:", response.text)
     except Exception as e:
         return e  # Return the exception if an error occurs
-    print(response)
+    print(response.text)
     print("_"*75)
     return response # Return the response object
 
@@ -54,7 +54,7 @@ def get_items_empty_filter():
             print("Error Message:", response.text)
     except Exception as e:
         return e  # Return the exception if an error occurs
-    print(response)
+    print(response.text)
     print("_"*75)
     return response # Return the response object
 
@@ -86,7 +86,7 @@ def get_items_price_50():
             print("Error Message:", response.text)
     except Exception as e:
         return e  # Return the exception if an error occurs
-    print(response)
+    print(response.text)
     print("_"*75)
     return response # Return the response object
 
@@ -116,7 +116,7 @@ def get_item_id_1():
             print("Error Message:", response.text)
     except Exception as e:
         return e  # Return the exception if an error occurs
-    print(response)
+    print(response.text)
     print("_"*75)
     return response # Return the response object
 
@@ -147,7 +147,7 @@ def get_item_id_out_of_range():
             print("Error Message:", response.text)
     except Exception as e:
         return e  # Return the exception if an error occurs
-    print(response)
+    print(response.text)
     print("_"*75)
     return response # Return the response object
 
@@ -186,7 +186,7 @@ def create_item_cardgame():
             print("Error Message:", response.text)
     except Exception as e:
         return e  # Return the exception if an error occurs
-    print(response)
+    print(response.text)
     print("_"*75)
     return response # Return the response object
 
@@ -226,7 +226,7 @@ def create_item_nonexistent_item_type():
             print("Error Message:", response.text)
     except Exception as e:
         return e  # Return the exception if an error occurs
-    print(response)
+    print(response.text)
     print("_"*75)
     return response # Return the response object
 
@@ -265,7 +265,7 @@ def create_item_without_item_type():
             print("Error Message:", response.text)
     except Exception as e:
         return e  # Return the exception if an error occurs
-    print(response)
+    print(response.text)
     print("_"*75)
     return response # Return the response object
 
@@ -306,7 +306,7 @@ def create_item_too_many_attributes():
             print("Error Message:", response.text)
     except Exception as e:
         return e  # Return the exception if an error occurs
-    print(response)
+    print(response.text)
     print("_"*75)
     return response # Return the response object
 
@@ -346,7 +346,7 @@ def create_item_incorrect_attribute_type():
             print("Error Message:", response.text)
     except Exception as e:
         return e  # Return the exception if an error occurs
-    print(response)
+    print(response.text)
     print("_"*75)
     return response # Return the response object
 
@@ -385,7 +385,7 @@ def create_item_nonexistent_reference():
             print("Error Message:", response.text)
     except Exception as e:
         return e  # Return the exception if an error occurs
-    print(response)
+    print(response.text)
     print("_"*75)
     return response # Return the response object
 
@@ -415,7 +415,7 @@ def create_item_empty_blueprint():
             print("Error Message:", response.text)
     except Exception as e:
         return e  # Return the exception if an error occurs
-    print(response)
+    print(response.text)
     print("_"*75)
     return response # Return the response object
 
@@ -455,7 +455,7 @@ def create_item_incomplete_blueprint():
             print("Error Message:", response.text)
     except Exception as e:
         return e  # Return the exception if an error occurs
-    print(response)
+    print(response.text)
     print("_"*75)
     return response # Return the response object
 
@@ -485,7 +485,7 @@ def remove_item_id_16():
             print("Error Message:", response.text)
     except Exception as e:
         return e  # Return the exception if an error occurs
-    print(response)
+    print(response.text)
     print("_"*75)
     return response # Return the response object
 
@@ -516,7 +516,7 @@ def remove_item_id_out_of_range():
             print("Error Message:", response.text)
     except Exception as e:
         return e  # Return the exception if an error occurs
-    print(response)
+    print(response.text)
     print("_"*75)
     return response # Return the response object
 
@@ -549,7 +549,7 @@ def update_item_id_1_discount_40():
             print("Error Message:", response.text)
     except Exception as e:
         return e  # Return the exception if an error occurs
-    print(response)
+    print(response.text)
     print("_"*75)
     return response # Return the response object
 
@@ -589,7 +589,7 @@ def update_items_collectible_figure_price_175_discount_50():
             print("Error Message:", response.text)
     except Exception as e:
         return e  # Return the exception if an error occurs
-    print(response)
+    print(response.text)
     print("_"*75)
     return response # Return the response object
 
