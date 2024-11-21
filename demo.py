@@ -2,20 +2,46 @@ import sys
 import inspect
 import requests
 from pprint import pprint
+from factory import Factory
 import tests
 import models
-
-
+import random
+from string import ascii_letters 
+from dbcontext import DatabaseContext
+import sqlalchemy as sql
 def getTests():
     return [(k, v) for k, v in inspect.getmembers(tests) if k.startswith("test_")]
 
 
-def menu(lst: list[tuple[str, any]], preface=""):
+class MenuArg:
+    def __init__(self, fun, arg=None):
+        self._fun = fun
+        self._arg = arg
+
+    def __call__(self):
+        if (self._arg):
+            return self._fun(self._arg)
+        else:
+            return self._fun()
+
+def _getRandom(t:type):
+    """get a random value based on type"""
+    if t == int:
+        return random.randint(0,10000)
+    if t == float:
+        return random.uniform(0,1)
+    if t == str:
+        return "".join(random.choices(ascii_letters,k=random.randint(3,9)))
+    return None
+def menu_yn(question):
+    return menu([("no", lambda: False),("yes", lambda : True)], preface=question)
+def menu(lst: list[tuple[str, MenuArg]], preface=""):
     if preface != "":
         print(preface)
     lstStr = ""
     for i, (k, v) in enumerate(lst):
-        lstStr += f"{i}) {k}\n"
+        offset = "" if i > 9 else " "
+        lstStr += f"{offset}{i}) {k}\n"
     print(lstStr)
     choice = None
     while choice is None:
@@ -66,29 +92,80 @@ def checkTestmode():
     except Exception as e:
         print(e)
 
+def _lookupReference(table_name):
+    with dbContext.get_session() as S:
+        try:
+            res = S.query(models.TABLES_GET(table_name).cls)
+        except Exception as e:
+            print(e)
+            print("lookup failed")
+        pprint(res)
+        return(res)
+            
+
 def editObject(T: models.Table):
     print(T.name)
     value = {}
     done = False
-    options = [
-        *[(c.name, lambda: pprint(c.name)) for c in T.columns],
-        ("return", lambda: True)
-    ]
+    fields = [c for c in T.columns if not c.primary_key]
+    def setVal(c: models.TableColumn):
+        if c.mapper is None:
+            try:
+                value[c.name] = c.type(input(f"enter field value ({c.type}):"))
+            except:
+                print("Failed to read input")
+        else:
+            res = _lookupReference(c.mapper)
+            if res is not None:
+                value[c.name] = menu([
+                    (f"{row.name} id={row.id}", MenuArg(lambda x:x.id if c.type == int else c.name, arg=row))
+                for row in res],preface="Pick from the list")
+
+    def displayField(c: models.TableColumn) -> str:
+        S = f"{c.name+(":? " if c.optional else ": " )+c.type.__name__:30} {" = "} {value.get(c.name, "__")}"
+        if(c.mapper): S+=str(c.mapper)
+        return S
+    
+    def fillWithRandom():
+        for f in fields:
+            if value.get(f.name) is None:
+                if f.mapper is None:
+                    value[f.name] = _getRandom(f.type)
+
     while not done:
         print(f"class: {T.name} table: {T.table}")
         print(done)
-        _m = menu(options,preface="pick field to edit or return")
+        _m = menu(
+            [*[(displayField(c), MenuArg(setVal, arg=c))
+                for c in fields],
+             ("Fill empty with random data (!unpredictable!)", fillWithRandom),
+             ("return", lambda: True)],
+            preface="pick field to edit or return"
+        )
         done = _m == True
+    value["item_type"] = T.name
     return value
+
+def _comitItemToDB(item):
+    with dbContext.get_session() as S:
+        S.add()
+
 def createItemInteractive():
     table = None
-    items = [x for x in models.TABLES]
-    options = [(I.name, lambda : i) for i,I in enumerate(items)]
-    choice = menu(options, preface="Pick entry type")
+    options = [(I.name, MenuArg(lambda x: x, arg=I)) for I in models.ITEMS]
     print("Picked entry type")
-    pprint(choice)
-    editObject(items[choice])
-    pprint(items)
+    value = editObject(menu(options, preface="Pick entry type"))
+    pprint(value)
+    with dbContext.get_session() as S:
+        try:
+            item = Factory.create_item_from_dict(S,value)
+        except Exception as e:
+            print(e)
+            print("Failed to create item")
+        else:
+            if(menu_yn("Comit item to database?")):
+                _comitItemToDB(item)
+            return item
 
 
 def getMenuEntries():
@@ -103,7 +180,7 @@ def getMenuEntries():
         ("quit", lambda: quit())
     ]
 
-
+dbContext = DatabaseContext()
 if __name__ == "__main__":
     while True:
         menu(getMenuEntries())
