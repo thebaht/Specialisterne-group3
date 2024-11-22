@@ -52,7 +52,7 @@ def serialize_model(obj: Base):
     Returns:
         dict: A dictionary representation of the model.
     """
-    return {  
+    return {
         c.key: getattr(obj, c.key)                      # Map attribute names to their values
         for c in inspect(obj).mapper.column_attrs       # Get all column attributes
         if not isinstance(getattr(obj, c.key), Base)    # Exclude nested objects
@@ -72,21 +72,21 @@ def get_items(table_name):
     Returns:
         Response: JSON response containing the queried items.
     """
-    session = dbcontext.get_session() # Start a new database session 
+    session = dbcontext.get_session() # Start a new database session
     try:
-        table = models.TABLES_GET(table_name).cls # Get the table class from on its name 
-        if filter := request.json.items(): # Extract filter criteria from the request body 
-            filter = [getattr(table, key) == value for key, value in filter] # Reformat filter to use as arguments for query 
-            data = session.query(table).filter(and_(*filter)).all() # Query the table with the filter 
+        table = models.TABLES_GET(table_name).cls # Get the table class from on its name
+        if filter := request.json.items(): # Extract filter criteria from the request body
+            filter = [getattr(table, key) == value for key, value in filter] # Reformat filter to use as arguments for query
+            data = session.query(table).filter(and_(*filter)).all() # Query the table with the filter
         else:
             data = session.query(table).all() # If no filter, fetch all rows from the table
         data = [serialize_model(obj) for obj in data] # Serialize the query results
     except Exception as e:
-        session.rollback() # Roll back changes if an error occurs 
-        return str(e), 400 # Return error message with 400 status code 
+        session.rollback() # Roll back changes if an error occurs
+        return str(e), 400 # Return error message with 400 status code
     finally:
         _commit(session) # Commit transaction to database
-        session.close() # Close the session 
+        session.close() # Close the session
     return jsonify(data), 200 # Return serialized data as a JSON response
 
 
@@ -191,10 +191,10 @@ def update_items(table_name):
     try:
         re = request.json
         blueprint = dict(re["blueprint"].items()) # Extract the update data from request body, and parse it into a dictionary
-        if filter := re["filter"].items(): # Extract filter criteria from the request body 
+        if filter := re["filter"].items(): # Extract filter criteria from the request body
             filter = [getattr(table, key) == value for key, value in filter] # Reformat filter to use as arguments for query
             data = session.query(table).filter(and_(*filter)).update(blueprint) # Update filtered items with the update data
-        else: 
+        else:
             data = session.query(table).update(blueprint) # Update all items in table if no filter provided
     except Exception as e:
         session.rollback() # Roll back changes if an error occurs
@@ -239,14 +239,14 @@ def is_test_mode():
 
 TESTMODE = False    # test mode state
 
-def _commit(session:Session):   
+def _commit(session:Session):
     """Wrapper function for session.commit.\n
     Ignores commits and rolls back changes if in TESTMODE"""
     if TESTMODE:
         session.rollback()  # roll back changes
     else:
         session.commit()    # commit changes
-        
+
 if __name__ == "__main__":
     TESTMODE = "testmode" in sys.argv   # testmode argument in terminal
     print(f"Testmode: {"Enabled" if TESTMODE else "Disabled"}")

@@ -12,8 +12,8 @@ def create_characters():
         Factory.create_character(name="Darth Vader",franchise="Star Wars"),
         Factory.create_character(name="Sherlock Holmes",franchise="Sherlock Holmes"),
     ]
-    
-    
+
+
 def create_genre():
     return [
         Factory.create_genre(name="Eurogame"),
@@ -118,5 +118,3 @@ def create_tabletopFigures(session):
             ("Eldar", 20, 250)
         ]],
     ]
-
-
