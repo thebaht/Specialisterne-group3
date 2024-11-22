@@ -12,6 +12,8 @@ import sqlalchemy as sql
 def getTests():
     return [(k, v) for k, v in inspect.getmembers(tests) if k.startswith("test_")]
 
+def _sep():
+    print("-"*75)
 
 class MenuArg:
     def __init__(self, fun, arg=None):
@@ -32,10 +34,14 @@ def _getRandom(t:type):
         return random.uniform(0,1)
     if t == str:
         return "".join(random.choices(ascii_letters,k=random.randint(3,9)))
-    return None
+    if t == bool:
+        return random.choice([True, False])
+    return None # Sus
 def menu_yn(question):
     return menu([("no", lambda: False),("yes", lambda : True)], preface=question)
 def menu(lst: list[tuple[str, MenuArg]], preface=""):
+    _sep()
+    _sep()
     if preface != "":
         print(preface)
     lstStr = ""
@@ -49,7 +55,6 @@ def menu(lst: list[tuple[str, MenuArg]], preface=""):
             choice = int(input())
         except Exception:
             print("invalid input")
-    pprint(lst[choice])
     _, fun = lst[choice]
     return fun()
 
@@ -69,6 +74,7 @@ def requestGet(multiple=False):
                     id = int(input("item.id: "))
                 except Exception:
                     print("Failed to parse id")
+            #print(endpoint+"item/"+str(id))
             res = requests.get(endpoint+"item/"+str(id))
         else:
             table = None
@@ -77,7 +83,8 @@ def requestGet(multiple=False):
                     table = input("Table name: ")
                 except Exception:
                     print("Invalid input")
-            res = requests.get(endpoint+str(table))
+            #print(endpoint+str(table))
+            res = requests.get(endpoint+str(table),json={})
     except Exception as e:
         print(e)
     else:
@@ -99,15 +106,13 @@ def _lookupReference(table_name):
         except Exception as e:
             print(e)
             print("lookup failed")
-        pprint(res)
         return(res)
             
 
 def editObject(T: models.Table):
-    print(T.name)
     value = {}
     done = False
-    fields = [c for c in T.columns if not c.primary_key]
+    fields = [c for c in T.columns if not c.primary_key and not c.name == "type"]
     def setVal(c: models.TableColumn):
         if c.mapper is None:
             try:
@@ -134,7 +139,6 @@ def editObject(T: models.Table):
 
     while not done:
         print(f"class: {T.name} table: {T.table}")
-        print(done)
         _m = menu(
             [*[(displayField(c), MenuArg(setVal, arg=c))
                 for c in fields],
@@ -148,12 +152,11 @@ def editObject(T: models.Table):
 
 def _comitItemToDB(item):
     with dbContext.get_session() as S:
-        S.add()
+        S.add(item)
+        S.commit()
 
 def createItemInteractive():
-    table = None
     options = [(I.name, MenuArg(lambda x: x, arg=I)) for I in models.ITEMS]
-    print("Picked entry type")
     value = editObject(menu(options, preface="Pick entry type"))
     pprint(value)
     with dbContext.get_session() as S:
@@ -167,6 +170,10 @@ def createItemInteractive():
                 _comitItemToDB(item)
             return item
 
+def _make_query(tname):
+    for r in _lookupReference(tname):
+        _sep()
+        pprint(r.__dict__)
 
 def getMenuEntries():
     return [
@@ -176,11 +183,14 @@ def getMenuEntries():
             ("Multiple items", lambda: requestGet(multiple=True)),
         ])),
         ("Create new item", createItemInteractive),
+        ("Make query", lambda : menu([
+            (t.name, MenuArg(_make_query, arg=t.name))
+        for t in models.TABLES],preface="Pick table")),
         ("Choose test", lambda: menu(getTests(), preface="Pick test")),
         ("quit", lambda: quit())
     ]
 
-dbContext = DatabaseContext()
+dbContext = DatabaseContext.get_instance()
 if __name__ == "__main__":
     while True:
         menu(getMenuEntries())

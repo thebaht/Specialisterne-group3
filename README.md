@@ -12,6 +12,8 @@ HTTP API serveren startes ved at køre `python backend.py`.
 
 For at køre tests skal HTTP API serveren først startes i "test mode" ved at køre `python backend.py testmode`, hvorefter API'en og databasehandlinger kan blive aftestet ved at køre `pytest tests.py`. For mere uddybende testinformation kan testkoden også køres direkte med `python tests.py`.
 
+Der er et demoscript som kan køres med `python demo.py`. Her kan man bruge terminalen til at udføre en række operationer og vise resultatet.
+
 ## HTTP API
 
 HTTP API'en retunerer en statuskode på `200`, hvis andmodningen var succesfuld, ellers retuneres en streng med fejlen og en status kode på `400`.
