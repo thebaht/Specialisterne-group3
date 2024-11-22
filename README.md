@@ -4,7 +4,7 @@ Et projekt der indeholder en implenentation af et lille lagringssystem med en HT
 
 ## Kørsel
 
-Udfyld først dine forbindelsesoplysninger til din MySQL server i `dbinfo.py` og opret en ny database med samme navn som variablen `DATABASE`.
+Udfyld først dine forbindelsesoplysninger til din MySQL server i `dbinfo.py` og opret en ny database med samme navn som variablen `DATABASE`. Brug `git update-index --assume-unchanged dbinfo.py` for at få git til at ignorere dine ændringer til filen.
 
 Lav derefter et nyt Python virtual environment og installer pakkerne listet i `requirements.txt`.
 
