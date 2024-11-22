@@ -6,7 +6,7 @@ from factory import Factory
 import tests
 import models
 import random
-from string import ascii_letters 
+from string import ascii_letters
 from dbcontext import DatabaseContext
 import sqlalchemy as sql
 def getTests():
@@ -101,7 +101,7 @@ def _lookupReference(table_name):
             print("lookup failed")
         pprint(res)
         return(res)
-            
+
 
 def editObject(T: models.Table):
     print(T.name)
@@ -125,7 +125,7 @@ def editObject(T: models.Table):
         S = f"{c.name+(":? " if c.optional else ": " )+c.type.__name__:30} {" = "} {value.get(c.name, "__")}"
         if(c.mapper): S+=str(c.mapper)
         return S
-    
+
     def fillWithRandom():
         for f in fields:
             if value.get(f.name) is None:
