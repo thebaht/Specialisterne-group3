@@ -14,7 +14,7 @@ class DatabaseContext:
         if DatabaseContext._instance is None:
             DatabaseContext._instance = DatabaseContext(manualCall=False)
         return DatabaseContext._instance
-        
+
     def __init__(self, manualCall=True):
         """
         Initializes the database context by creating an engine, configuring a session factory,
