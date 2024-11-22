@@ -8,7 +8,7 @@ import db_seed
 from sqlalchemy.inspection import inspect
 
 # Initialize database context and Flask app
-dbcontext = DatabaseContext()   # Create an instance of the DatabaseContext class
+dbcontext = DatabaseContext.get_instance()   # Create an instance of the DatabaseContext class
 dbcontext.clear_database()      # Clear the database, to avoid duplicate data when populating
 app = Flask(__name__)           # Initialize a Flask app instance
 

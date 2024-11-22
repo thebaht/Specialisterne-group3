@@ -9,11 +9,18 @@ class DatabaseContext:
     """
     A class to manage database interactions, including session creation, table management, and connection lifecycle.
     """
-    def __init__(self):
+    _instance = None
+    def get_instance():
+        if DatabaseContext._instance is None:
+            DatabaseContext._instance = DatabaseContext(manualCall=False)
+        return DatabaseContext._instance
+        
+    def __init__(self, manualCall=True):
         """
         Initializes the database context by creating an engine, configuring a session factory,
         and ensuring all database tables are created.
         """
+        if manualCall: print("YOU SHOULD NOT BE CALLING THIS CONSTRUCTOR >:(")
         self.engine = create_engine(connection_string, echo=False)  # Create a database engine using the connection string, SQL query logging disabled
         self.Session = sessionmaker(bind=self.engine)               # Create a session factory bound to the engine
         Base.metadata.create_all(self.engine)                       # Create all tables defined in the models module, if they don't already exist
