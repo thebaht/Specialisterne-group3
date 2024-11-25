@@ -1,3 +1,4 @@
+import json
 import sys
 from dbcontext import *
 from factory import Factory
@@ -58,6 +59,54 @@ def serialize_model(obj: Base):
         if not isinstance(getattr(obj, c.key), Base)    # Exclude nested objects
     }
 
+
+class EnhancedJSONEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, models.Table):
+            return {
+                "name": o.name,
+                "table": o.table,
+                "columns": [self.default(column) for column in o.columns],
+            }
+        elif isinstance(o, models.TableColumn):
+            return {
+                "name": o.name,
+                "type": o.type.__name__,
+                "optional": o.optional,
+                "primary_key": o.primary_key,
+                "foreign_keys": [
+                    {
+                        "table": key.column.table.name,
+                        "column": key.column.name
+                    }
+                    for key in o.foreign_keys
+                ],
+                "mapper": o.mapper,
+            }
+        else:
+            return super().default(o)
+
+
+@app.route('/api/tables', methods=['GET'])
+def tables_all():
+    """
+    Returns the database table definitions for everything.
+
+    Returns:
+        Response: JSON response of table definitions.
+    """
+    return json.dumps(models.TABLES, cls=EnhancedJSONEncoder), 200 # Return serialized data as a JSON response
+
+
+@app.route('/api/tables/item', methods=['GET'])
+def tables_item():
+    """
+    Returns the database table definitions for items.
+
+    Returns:
+        Response: JSON response of table definitions.
+    """
+    return json.dumps(models.ITEMS, cls=EnhancedJSONEncoder), 200 # Return serialized data as a JSON response
 
 
 @app.route('/api/items/<string:table_name>', methods=['GET'])
