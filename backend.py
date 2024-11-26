@@ -24,9 +24,9 @@ operator_map = {     # dictionary to look up operators from a string
     '<=': operators.le,
     '==': operators.eq,
     '!=': operators.ne,
-    "in": operators.in_op,  
+    "in": operators.in_op,
     "not_in": operators.notin_op,
-    "range": None        
+    "range": None
 }
 
 default_operator = '=='
@@ -38,7 +38,7 @@ def filter_build(table, lst):
             operator, value = value
         else:
             operator = default_operator
-            
+
         if operator in operator_map:
             column = getattr(table, key)
             if operator == 'range':
@@ -56,7 +56,7 @@ def filter_build(table, lst):
 """ JSON Filter exempel:
 filter = {
     "id":       "1",                                                # bruger == som default hvis andet ikke er givet
-    "price":    ["!=", "200"],                                      # Bruger operatoren != 
+    "price":    ["!=", "200"],                                      # Bruger operatoren !=
     "name":     ["in", ["Settlers of Cataan", "Ticket to ride"]],   # in og not_in, tager liste af vilkårlig længde
     "discount": ["range", [10, 20]],                                # Range query tager liste med længde == 2.
 }
@@ -174,7 +174,7 @@ def get_items(table_name):
         table = models.TABLES_GET(table_name).cls # Get the table class from on its name
         if filter := request.json: # Extract filter criteria from the request body
             filter = filter.items()
-            filter = [getattr(table, key) == value for key, value in filter] # Reformat filter to use as arguments for query
+            filter = filter_build(table, filter)
             data = session.query(table).filter(and_(*filter)).all() # Query the table with the filter
         else:
             data = session.query(table).all() # If no filter, fetch all rows from the table
