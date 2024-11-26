@@ -4,6 +4,7 @@ from dbcontext import *
 from factory import Factory
 from sqlalchemy import and_
 from flask import Flask, jsonify, request
+from flask_cors import CORS
 from factory import *
 import db_seed
 from sqlalchemy.inspection import inspect
@@ -12,7 +13,7 @@ from sqlalchemy.inspection import inspect
 dbcontext = DatabaseContext.get_instance()   # Create an instance of the DatabaseContext class
 dbcontext.clear_database()      # Clear the database, to avoid duplicate data when populating
 app = Flask(__name__)           # Initialize a Flask app instance
-
+cors = CORS(app)
 
 #! Populate db with db_seed.py here
 def populateDB():
@@ -124,7 +125,8 @@ def get_items(table_name):
     session = dbcontext.get_session() # Start a new database session
     try:
         table = models.TABLES_GET(table_name).cls # Get the table class from on its name
-        if filter := request.json.items(): # Extract filter criteria from the request body
+        if filter := request.json: # Extract filter criteria from the request body
+            filter = filter.items()
             filter = [getattr(table, key) == value for key, value in filter] # Reformat filter to use as arguments for query
             data = session.query(table).filter(and_(*filter)).all() # Query the table with the filter
         else:
@@ -139,6 +141,34 @@ def get_items(table_name):
     return jsonify(data), 200 # Return serialized data as a JSON response
 
 
+@app.route('/api/get/<string:table_name>', methods=['POST'])
+def get_items_post(table_name):
+    """
+    Acts like get_items, but responds to POST
+    Used to bypass limitations on body in get reqquests
+    """
+    session = dbcontext.get_session()  # Start a new database session
+    try:
+        # Get the table class from on its name
+        table = models.TABLES_GET(table_name).cls
+        if filter := request.json:  # Extract filter criteria from the request body
+            filter = filter.items()
+            # Reformat filter to use as arguments for query
+            filter = [getattr(table, key) == value for key, value in filter]
+            # Query the table with the filter
+            data = session.query(table).filter(and_(*filter)).all()
+        else:
+            # If no filter, fetch all rows from the table
+            data = session.query(table).all()
+        data = [serialize_model(obj)
+                for obj in data]  # Serialize the query results
+    except Exception as e:
+        session.rollback()  # Roll back changes if an error occurs
+        return str(e), 400  # Return error message with 400 status code
+    finally:
+        _commit(session)  # Commit transaction to database
+        session.close()  # Close the session
+    return jsonify(data), 200  # Return serialized data as a JSON response
 
 @app.route('/api/item/<string:table_name>/<int:id>', methods=['GET'])
 def get_item(table_name, id):
