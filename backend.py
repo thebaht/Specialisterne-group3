@@ -276,7 +276,7 @@ def update_items(table_name):
             filter = [getattr(table, key) == value for key, value in filter] # Reformat filter to use as arguments for query
             data = session.query(table).filter(and_(*filter)).all() # Update filtered items with the update data
         else:
-            data = session.query(table).update(blueprint).all() # Update all items in table if no filter provided
+            data = session.query(table).all() # Update all items in table if no filter provided
         for obj in data:
             for key, value in blueprint.items():
                 setattr(obj, key, value)  
