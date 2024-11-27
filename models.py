@@ -211,6 +211,7 @@ class Table:
     cls: Base  # class
     name: str  # class name
     table: str  # table name
+    polymorphic: Optional[str] # column name for inheritance identity
     columns: List[TableColumn]  # database columns
 
     def matches_name(self, name: str) -> bool:
@@ -231,8 +232,12 @@ def __get_tables__() -> List[Table]:
 
     tables = []
     for cls in classes:
+        inspection = sa_inspect(cls)
+
+        polymorphic = inspection.polymorphic_on.name if inspection.polymorphic_on is not None else None
+
         # generate list of TableColumn's by inspecting the table class
-        columns = (attrs.columns[0] for attrs in sa_inspect(cls).mapper.column_attrs)
+        columns = (attrs.columns[0] for attrs in inspection.mapper.column_attrs)
         columns = [
             TableColumn(
                 column,
@@ -269,6 +274,7 @@ def __get_tables__() -> List[Table]:
             cls,
             cls.__name__,
             cls.__tablename__,
+            polymorphic,
             columns,
         ))
 

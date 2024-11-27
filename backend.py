@@ -67,6 +67,7 @@ class EnhancedJSONEncoder(json.JSONEncoder):
             return {
                 "name": o.name,
                 "table": o.table,
+                "polymorphic": o.polymorphic,
                 "columns": [self.default(column) for column in o.columns],
             }
         elif isinstance(o, models.TableColumn):
