@@ -241,7 +241,9 @@ def update_item(table_name, id):
     table = models.TABLES_GET(table_name).cls # Get the table class from on its name
     try:
         blueprint = dict(request.json.items()) # Extract the update data from request body, and parse it into a dictionary
-        session.query(table).filter(table.id == id).update(blueprint) # Update the item with the update data
+        obj = session.query(table).filter(table.id == id).first()
+        for key, value in blueprint.items():
+            setattr(obj, key, value) 
     except Exception as e:
         session.rollback() # Roll back changes if an error occurs
         return str(e), 400 # Return error message with 400 status code
@@ -272,9 +274,12 @@ def update_items(table_name):
         blueprint = dict(re["blueprint"].items()) # Extract the update data from request body, and parse it into a dictionary
         if filter := re["filter"].items(): # Extract filter criteria from the request body
             filter = [getattr(table, key) == value for key, value in filter] # Reformat filter to use as arguments for query
-            data = session.query(table).filter(and_(*filter)).update(blueprint) # Update filtered items with the update data
+            data = session.query(table).filter(and_(*filter)).all() # Update filtered items with the update data
         else:
-            data = session.query(table).update(blueprint) # Update all items in table if no filter provided
+            data = session.query(table).update(blueprint).all() # Update all items in table if no filter provided
+        for obj in data:
+            for key, value in blueprint.items():
+                setattr(obj, key, value)  
     except Exception as e:
         session.rollback() # Roll back changes if an error occurs
         return str(e), 400 # Return error message with 400 status code
